@@ -707,7 +707,6 @@
 
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
-      msg.innerText = 'Analizando matriz con gemini-3.6-flash...';
 
       let base64Data = '';
       if (file.type.startsWith('image/')) {
@@ -737,40 +736,54 @@
       }]
       Reglas: Conserva exactos los números y signos como "<10", "10", "20", "OK", "/".`;
 
-      // Endpoint directo a gemini-3.6-flash con response_mime_type JSON
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${key}`;
+      // Lista de modelos con fallback automático para evitar bloqueos de cuota
+      const modelos = ['gemini-2.5-flash', 'gemini-1.5-flash'];
 
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: promptText },
-                { inline_data: { mime_type: mimeType, data: base64Data } }
-              ]
-            }],
-            generationConfig: {
-              response_mime_type: "application/json"
-            }
-          })
-        });
+      for (let i = 0; i < modelos.length; i++) {
+        const modeloActual = modelos[i];
+        msg.innerText = `Analizando matriz con ${modeloActual}...`;
 
-        const resData = await response.json();
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modeloActual}:generateContent?key=${key}`;
 
-        if (resData.candidates && resData.candidates[0]?.content?.parts[0]?.text) {
-          const rawText = resData.candidates[0].content.parts[0].text;
-          const registros = JSON.parse(rawText);
-          await enviarABaseDeDatos({ action: 'CREATE', data: registros });
-        } else if (resData.error) {
-          throw new Error(resData.error.message);
-        } else {
-          throw new Error('Respuesta sin contenido válido.');
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: promptText },
+                  { inline_data: { mime_type: mimeType, data: base64Data } }
+                ]
+              }],
+              generationConfig: {
+                response_mime_type: "application/json"
+              }
+            })
+          });
+
+          if (response.status === 429) {
+            msg.innerText = `Límite por minuto alcanzado. Esperando respaldo (${modeloActual})...`;
+            await new Promise(r => setTimeout(r, 3000));
+            continue;
+          }
+
+          const resData = await response.json();
+
+          if (resData.candidates && resData.candidates[0]?.content?.parts[0]?.text) {
+            const rawText = resData.candidates[0].content.parts[0].text;
+            const registros = JSON.parse(rawText);
+            await enviarABaseDeDatos({ action: 'CREATE', data: registros });
+            return;
+          } else if (resData.error) {
+            if (i === modelos.length - 1) throw new Error(resData.error.message);
+          }
+        } catch (e) {
+          if (i === modelos.length - 1) {
+            msg.className = 'mt-2 text-xs text-red-600 block';
+            msg.innerText = 'Error de procesamiento: ' + e.message;
+          }
         }
-      } catch (e) {
-        msg.className = 'mt-2 text-xs text-red-600 block';
-        msg.innerText = 'Error de procesamiento: ' + e.message;
       }
     }
 
