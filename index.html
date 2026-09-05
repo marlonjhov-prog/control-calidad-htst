@@ -8,14 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- SDK Oficial de Google Gen AI -->
-  <script type="importmap">
-    {
-      "imports": {
-        "@google/genai": "https://esm.run/@google/genai"
-      }
-    }
-  </script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
 
@@ -40,7 +32,7 @@
 
   <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- Panel de Configuración API Key -->
+    <!-- Panel de Configuración API Key (Guardado Local) -->
     <section id="panelConfig" class="hidden bg-amber-50 border border-amber-200 p-4 rounded-xl space-y-2">
       <div class="flex justify-between items-center">
         <h3 class="text-xs font-bold text-amber-900 flex items-center gap-2">
@@ -50,7 +42,7 @@
       </div>
       <p class="text-[11px] text-amber-800">Guarda la clave una sola vez. Se almacena localmente en este navegador sin exponerse en GitHub.</p>
       <div class="flex gap-2">
-        <input type="password" id="geminiApiKey" placeholder="Pega tu API Key" class="flex-1 text-xs p-2 rounded border border-amber-300 focus:outline-none bg-white">
+        <input type="password" id="geminiApiKey" placeholder="Pega tu API Key (AIzaSy...)" class="flex-1 text-xs p-2 rounded border border-amber-300 focus:outline-none bg-white">
         <button onclick="guardarApiKey()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-3 py-2 rounded font-bold">Guardar</button>
       </div>
       <div id="keyStatus" class="text-[11px]"></div>
@@ -71,7 +63,7 @@
       <div id="statusMessage" class="mt-2 text-xs hidden"></div>
     </section>
 
-    <!-- Filtros -->
+    <!-- Filtros de Consulta -->
     <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-3">
       <div>
         <label class="block text-xs font-medium text-slate-500 mb-1">Filtrar por Producto:</label>
@@ -83,7 +75,7 @@
       </div>
     </section>
 
-    <!-- Tabla -->
+    <!-- Tabla Principal de Resultados -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="px-5 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <h2 class="font-bold text-xs text-slate-700">Matriz de Resultados HTST</h2>
@@ -118,22 +110,28 @@
 
   </main>
 
-  <script type="module">
-    import { GoogleGenAI } from '@google/genai';
-
+  <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKUoOy17vZnjqKjk8FnjsM7riy2IyGWOgjKWGBjE5UnJSFdZnLsZoiZi9GeZFQtDfOxQ/exec';
     let datosGlobales = [];
 
-    window.toggleConfig = () => document.getElementById('panelConfig').classList.toggle('hidden');
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      cargarDatosBD();
+      verificarKeyGuardada();
+    });
 
-    window.guardarApiKey = () => {
+    function toggleConfig() {
+      document.getElementById('panelConfig').classList.toggle('hidden');
+    }
+
+    function guardarApiKey() {
       const key = document.getElementById('geminiApiKey').value.trim();
       if (key) {
         localStorage.setItem('HTST_GEMINI_KEY', key);
         document.getElementById('keyStatus').className = 'text-xs text-emerald-600 font-bold';
         document.getElementById('keyStatus').innerText = '✓ Clave guardada de forma segura en este navegador.';
       }
-    };
+    }
 
     function verificarKeyGuardada() {
       const savedKey = localStorage.getItem('HTST_GEMINI_KEY');
@@ -144,7 +142,7 @@
       }
     }
 
-    window.cargarDatosBD = async () => {
+    async function cargarDatosBD() {
       try {
         const res = await fetch(APPS_SCRIPT_URL);
         const json = await res.json();
@@ -154,9 +152,9 @@
           renderTabla(datosGlobales);
         }
       } catch (err) {
-        console.error("Error al cargar datos:", err);
+        console.error("Error al obtener datos:", err);
       }
-    };
+    }
 
     function renderTabla(datos) {
       const tbody = document.getElementById('tablaResultados');
@@ -206,15 +204,15 @@
       document.getElementById('filterLote').innerHTML = '<option value="">Todos los lotes</option>' + lotes.map(l => `<option value="${l}">${l}</option>`).join('');
     }
 
-    window.aplicarFiltros = () => {
+    function aplicarFiltros() {
       const prod = document.getElementById('filterProducto').value;
       const lote = document.getElementById('filterLote').value;
       const filtrados = datosGlobales.filter(d => (!prod || d.producto === prod) && (!lote || d.lote === lote));
       renderTabla(filtrados);
-    };
+    }
 
-    window.eliminarRegistro = async (idRegistro) => {
-      if (!confirm("¿Deseas eliminar este registro de la base de datos?")) return;
+    async function eliminarRegistro(idRegistro) {
+      if (!confirm("¿Deseas eliminar permanentemente este registro?")) return;
 
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
@@ -237,11 +235,11 @@
         }
       } catch (err) {
         msg.className = 'mt-2 text-xs text-red-600 block';
-        msg.innerText = 'Error al comunicarse con la base de datos.';
+        msg.innerText = 'Error al comunicarse con Google Sheets.';
       }
-    };
+    }
 
-    window.procesarArchivo = async () => {
+    async function procesarArchivo() {
       const input = document.getElementById('fileInput');
       if (!input.files.length) return alert('Por favor selecciona un archivo.');
       const file = input.files[0];
@@ -251,7 +249,7 @@
       } else {
         procesarConIA(file);
       }
-    };
+    }
 
     async function procesarExcel(file) {
       const reader = new FileReader();
@@ -281,6 +279,7 @@
       reader.readAsArrayBuffer(file);
     }
 
+    // PROCESAMIENTO MULTIMODAL ROBUSTO CON FALLBACK AUTOMÁTICO DE MODELOS
     async function procesarConIA(file) {
       const key = localStorage.getItem('HTST_GEMINI_KEY');
       if (!key) {
@@ -291,52 +290,76 @@
 
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
-      msg.innerText = 'Analizando imagen/PDF con la SDK Oficial de Gemini...';
+      msg.innerText = 'Analizando documento con Inteligencia Artificial...';
 
-      try {
-        const ai = new GoogleGenAI({ apiKey: key });
-        const base64 = await toBase64(file);
-        const mimeType = file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
+      const base64 = await toBase64(file);
+      const mimeType = file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
 
-        const promptText = `Analiza la imagen o PDF de la MATRIZ DE RESULTADOS HTST y extrae los datos en un arreglo JSON estricto con esta estructura por cada fila:
-        [{
-          "fecha_envio": "YYYY-MM-DD",
-          "producto": "nombre",
-          "lote": "código",
-          "resultado_bromatologico": "OK",
-          "coliformes_totales": "<10",
-          "e_coli": "/",
-          "arb_mesofilos": "OK",
-          "s_aureus": "/",
-          "enterobacterias": "/",
-          "resiembra_eb": "/",
-          "mohos_levaduras": "/",
-          "responsable": "",
-          "observaciones": ""
-        }]
-        Reglas: Si ves √ pon "OK". Si la casilla tiene / o está vacía, pon "/". Retorna únicamente el JSON limpio sin bloques de código ni palabras adicionales.`;
+      const promptText = `Analiza la imagen o PDF de la MATRIZ DE RESULTADOS HTST y extrae los datos en un arreglo JSON estricto con esta estructura por cada fila:
+      [{
+        "fecha_envio": "YYYY-MM-DD",
+        "producto": "nombre",
+        "lote": "código",
+        "resultado_bromatologico": "OK",
+        "coliformes_totales": "<10",
+        "e_coli": "/",
+        "arb_mesofilos": "OK",
+        "s_aureus": "/",
+        "enterobacterias": "/",
+        "resiembra_eb": "/",
+        "mohos_levaduras": "/",
+        "responsable": "",
+        "observaciones": ""
+      }]
+      Reglas: Si ves √ pon "OK". Si la casilla tiene / o está vacía, pon "/". Retorna únicamente el JSON limpio sin bloques de código markdown.`;
 
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: [
-            promptText,
-            {
-              inlineData: {
-                mimeType: mimeType,
-                data: base64.split(',')[1]
-              }
-            }
-          ]
-        });
+      // Lista ordenada de modelos estables a consultar
+      const candidatosModelos = [
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
+        'gemini-2.0-flash'
+      ];
 
-        let rawText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const registros = JSON.parse(rawText);
+      let procesadoExitoso = false;
+      let ultimoError = '';
 
-        await enviarABaseDeDatos({ action: 'CREATE', data: registros });
+      for (const modelo of candidatosModelos) {
+        try {
+          msg.innerText = `Procesando con motor de IA (${modelo})...`;
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: promptText },
+                  { inline_data: { mime_type: mimeType, data: base64.split(',')[1] } }
+                ]
+              }]
+            })
+          });
 
-      } catch (err) {
+          const resData = await response.json();
+
+          if (resData.candidates && resData.candidates[0].content.parts[0].text) {
+            let rawText = resData.candidates[0].content.parts[0].text;
+            rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+            const registros = JSON.parse(rawText);
+
+            await enviarABaseDeDatos({ action: 'CREATE', data: registros });
+            procesadoExitoso = true;
+            break; // Si tuvo éxito, sale del bucle de modelos
+          } else if (resData.error) {
+            ultimoError = resData.error.message || 'Error en respuesta de la API';
+          }
+        } catch (e) {
+          ultimoError = e.message;
+        }
+      }
+
+      if (!procesadoExitoso) {
         msg.className = 'mt-2 text-xs text-red-600 block';
-        msg.innerText = 'Error al procesar: ' + err.message;
+        msg.innerText = 'No se pudo procesar la imagen: ' + ultimoError;
       }
     }
 
@@ -355,7 +378,7 @@
 
         if (res.status === 'SUCCESS') {
           msg.className = 'mt-2 text-xs text-emerald-600 block';
-          msg.innerText = '✓ ¡Datos guardados y sincronizados con éxito!';
+          msg.innerText = '✓ ¡Datos procesados y guardados con éxito!';
           document.getElementById('fileInput').value = '';
           cargarDatosBD();
         } else {
@@ -364,7 +387,7 @@
         }
       } catch (err) {
         msg.className = 'mt-2 text-xs text-red-600 block';
-        msg.innerText = 'Error al conectar con la base de datos.';
+        msg.innerText = 'Error de conexión con la base de datos.';
       }
     }
 
@@ -373,12 +396,6 @@
       reader.readAsDataURL(file);
       reader.onload = () => resolve(reader.result);
       reader.onerror = error => reject(error);
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-      cargarDatosBD();
-      verificarKeyGuardada();
     });
   </script>
 </body>
