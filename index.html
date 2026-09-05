@@ -76,11 +76,11 @@
 
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">En Cuarentena / Resiembra</p>
-          <h3 id="kpiResiembras" class="text-2xl font-black text-amber-600 mt-1">0</h3>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">En Cuarentena / Fuera Norma</p>
+          <h3 id="kpiResiembras" class="text-2xl font-black text-rose-600 mt-1">0</h3>
         </div>
-        <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
-          <i data-lucide="clock" class="w-6 h-6"></i>
+        <div class="p-3 bg-rose-50 text-rose-600 rounded-lg">
+          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
         </div>
       </div>
 
@@ -302,10 +302,28 @@
       }
     }
 
-    function esDesviacionEnterobacterias(ebVal, resVal) {
-      if (!ebVal || ebVal === '/' || ebVal === '') return false;
-      if (resVal === '<10' || resVal === 'OK') return false;
-      return true;
+    // Evaluación estricta de límites (>10 es fuera de norma)
+    function esFueraDeNorma(valor) {
+      if (!valor || valor === '/' || valor === '' || valor === 'OK') return false;
+      const valStr = String(valor).trim().replace('<', '').replace('>', '');
+      const num = parseFloat(valStr);
+      if (isNaN(num)) return false;
+      return num > 10;
+    }
+
+    function evaluarLoteCompleto(row) {
+      const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
+      const estaResembradoLiberado = resVal === '<10' || resVal === 'OK';
+
+      if (estaResembradoLiberado) return false;
+
+      const coliformesBiol = esFueraDeNorma(row.coliformes_totales);
+      const eColiBiol = esFueraDeNorma(row.e_coli);
+      const arbBiol = esFueraDeNorma(row.arb_mesofilos);
+      const ebBiol = esFueraDeNorma(row.enterobacterias);
+      const mohosBiol = esFueraDeNorma(row.mohos_levaduras);
+
+      return coliformesBiol || eColiBiol || arbBiol || ebBiol || mohosBiol;
     }
 
     function aplicarFiltros() {
@@ -316,17 +334,9 @@
       let filtrados = datosGlobales.filter(d => (!prod || d.producto === prod) && (!lote || d.lote === lote));
 
       if (estado === 'LIBERADOS') {
-        filtrados = filtrados.filter(row => {
-          const ebVal = row.enterobacterias ? String(row.enterobacterias).trim() : '';
-          const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-          return !esDesviacionEnterobacterias(ebVal, resVal);
-        });
+        filtrados = filtrados.filter(row => !evaluarLoteCompleto(row));
       } else if (estado === 'CUARENTENA') {
-        filtrados = filtrados.filter(row => {
-          const ebVal = row.enterobacterias ? String(row.enterobacterias).trim() : '';
-          const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-          return esDesviacionEnterobacterias(ebVal, resVal);
-        });
+        filtrados = filtrados.filter(row => evaluarLoteCompleto(row));
       }
 
       renderTabla(filtrados);
@@ -340,9 +350,7 @@
 
       datos.forEach(row => {
         if (row.lote) lotesUnicos.add(row.lote);
-        const ebVal = row.enterobacterias ? String(row.enterobacterias).trim() : '';
-        const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-        if (esDesviacionEnterobacterias(ebVal, resVal)) cuarentenas++;
+        if (evaluarLoteCompleto(row)) cuarentenas++;
       });
 
       const porcentajeCumplimiento = total > 0 ? (((total - cuarentenas) / total) * 100).toFixed(1) : 0;
@@ -362,9 +370,7 @@
 
       datos.forEach(row => {
         const prod = row.producto || 'Desconocido';
-        const ebVal = row.enterobacterias ? String(row.enterobacterias).trim() : '';
-        const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-        const enCuarentena = esDesviacionEnterobacterias(ebVal, resVal);
+        const enCuarentena = evaluarLoteCompleto(row);
 
         if (!productosMap[prod]) productosMap[prod] = { aprobados: 0, cuarentena: 0 };
 
@@ -391,7 +397,7 @@
           labels: labelsProds,
           datasets: [
             { label: 'Conforme / Liberado', data: dataAprobados, backgroundColor: '#10b981' },
-            { label: 'En Cuarentena / Resiembra', data: dataCuarentenas, backgroundColor: '#f59e0b' }
+            { label: 'En Cuarentena / Resiembra', data: dataCuarentenas, backgroundColor: '#f43f5e' }
           ]
         },
         options: {
@@ -408,7 +414,7 @@
           labels: ['Conforme / Liberado', 'En Cuarentena'],
           datasets: [{
             data: [totalmenteAprobados, conResiembra],
-            backgroundColor: ['#10b981', '#f59e0b']
+            backgroundColor: ['#10b981', '#f43f5e']
           }]
         },
         options: {
@@ -416,6 +422,12 @@
           maintainAspectRatio: false
         }
       });
+    }
+
+    function renderCeldaEvaluada(valor) {
+      const esRojo = esFueraDeNorma(valor);
+      const estilo = esRojo ? 'bg-rose-100 text-rose-700 font-black px-2 py-0.5 rounded' : '';
+      return `<td class="p-2.5 ${estilo}">${valor || '/'}</td>`;
     }
 
     function renderTabla(datos) {
@@ -428,16 +440,14 @@
       }
 
       tbody.innerHTML = datos.map(row => {
-        const ebVal = row.enterobacterias ? String(row.enterobacterias).trim() : '';
-        const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-        const requiereResiembra = esDesviacionEnterobacterias(ebVal, resVal);
+        const requiereResiembra = evaluarLoteCompleto(row);
 
         let textoDictamen = 'CONFORME_LIBERADO';
         let claseDictamen = 'bg-emerald-100 text-emerald-800 border-emerald-300 cursor-pointer hover:bg-emerald-200';
 
         if (requiereResiembra) {
           textoDictamen = 'REQUIERE_RESIEMBRA / EN_CUARENTENA';
-          claseDictamen = 'bg-amber-100 text-amber-800 border-amber-300 cursor-pointer hover:bg-amber-200';
+          claseDictamen = 'bg-rose-100 text-rose-800 border-rose-300 cursor-pointer hover:bg-rose-200';
         }
 
         return `
@@ -446,11 +456,11 @@
             <td class="p-2.5 font-semibold">${row.producto || ''}</td>
             <td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote || ''}</td>
             <td class="p-2.5">${row.resultado_bromatologico || 'OK'}</td>
-            <td class="p-2.5">${row.coliformes_totales || '<10'}</td>
-            <td class="p-2.5">${row.e_coli || '/'}</td>
-            <td class="p-2.5">${row.arb_mesofilos || 'OK'}</td>
-            <td class="p-2.5 ${ebVal !== '/' && ebVal !== '' ? 'font-bold text-amber-600' : ''}">${row.enterobacterias || '/'}</td>
-            <td class="p-2.5">${row.mohos_levaduras || '/'}</td>
+            ${renderCeldaEvaluada(row.coliformes_totales)}
+            ${renderCeldaEvaluada(row.e_coli)}
+            ${renderCeldaEvaluada(row.arb_mesofilos)}
+            ${renderCeldaEvaluada(row.enterobacterias)}
+            ${renderCeldaEvaluada(row.mohos_levaduras)}
             <td class="p-2.5">
               <span onclick="gestionarDictamenClick('${row.id_registro}')" class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${claseDictamen}">
                 ${textoDictamen}
@@ -471,10 +481,7 @@
       const reg = datosGlobales.find(d => d.id_registro === idRegistro);
       if (!reg) return;
 
-      const ebVal = reg.enterobacterias ? String(reg.enterobacterias).trim() : '';
-      const resVal = reg.resiembra_eb ? String(reg.resiembra_eb).trim() : '';
-
-      if (esDesviacionEnterobacterias(ebVal, resVal)) {
+      if (evaluarLoteCompleto(reg)) {
         abrirModalLiberacion(reg);
       } else {
         generarYMostrarReporteCompleto(reg);
@@ -494,7 +501,6 @@
       registroSeleccionadoModal = null;
     }
 
-    // Suma días calendario directamente sobre la cadena YYYY-MM-DD para evitar errores de UTC/Zona horaria
     function sumarDiasFechaStr(fechaStr, dias) {
       if (!fechaStr) return new Date().toISOString().substring(0, 10);
       const partes = String(fechaStr).substring(0, 10).split('-');
@@ -517,14 +523,20 @@
     async function guardarLiberacionYGenerarReporte() {
       if (!registroSeleccionadoModal) return;
 
-      const diasASumar = parseInt(document.getElementById('selectHorasIncubacion').value, 10); // 1 o 2 días
+      const diasASumar = parseInt(document.getElementById('selectHorasIncubacion').value, 10);
       const resultadoResiembra = document.getElementById('inputResultadoResiembra').value.trim() || '<10';
 
       const nuevaFechaStr = sumarDiasFechaStr(registroSeleccionadoModal.fecha_envio, diasASumar);
 
+      // Setea todos los valores fuera de norma a <10 para liberar completamente el lote
       const registroActualizado = {
         ...registroSeleccionadoModal,
         fecha_envio: nuevaFechaStr,
+        coliformes_totales: esFueraDeNorma(registroSeleccionadoModal.coliformes_totales) ? '<10' : registroSeleccionadoModal.coliformes_totales,
+        e_coli: esFueraDeNorma(registroSeleccionadoModal.e_coli) ? '<10' : registroSeleccionadoModal.e_coli,
+        arb_mesofilos: esFueraDeNorma(registroSeleccionadoModal.arb_mesofilos) ? '<10' : registroSeleccionadoModal.arb_mesofilos,
+        enterobacterias: esFueraDeNorma(registroSeleccionadoModal.enterobacterias) ? '<10' : registroSeleccionadoModal.enterobacterias,
+        mohos_levaduras: esFueraDeNorma(registroSeleccionadoModal.mohos_levaduras) ? '<10' : registroSeleccionadoModal.mohos_levaduras,
         resiembra_eb: resultadoResiembra,
         dictamen: 'CONFORME_LIBERADO'
       };
