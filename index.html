@@ -302,20 +302,24 @@
       }
     }
 
-    // Evaluación estricta de límites (>10 es fuera de norma)
+    // Evaluación estricta de fuera de norma: Cualquier número >= 10 o que no empiece por '<' ni sea 'OK'/'/'
     function esFueraDeNorma(valor) {
-      if (!valor || valor === '/' || valor === '' || valor === 'OK') return false;
-      const valStr = String(valor).trim().replace('<', '').replace('>', '');
-      const num = parseFloat(valStr);
+      if (!valor) return false;
+      const v = String(valor).trim();
+      if (v === '/' || v === '' || v === 'OK' || v.startsWith('<')) return false;
+
+      const num = parseFloat(v.replace('>', ''));
       if (isNaN(num)) return false;
-      return num > 10;
+      return num >= 10;
     }
 
     function evaluarLoteCompleto(row) {
+      // Si la resiembra ya está explícitamente registrada como liberada (<10 o OK), no está en cuarentena
       const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-      const estaResembradoLiberado = resVal === '<10' || resVal === 'OK';
+      if (resVal === '<10' || resVal === 'OK') return false;
 
-      if (estaResembradoLiberado) return false;
+      // Si el dictamen explícito en base de datos dice que fue liberado, se respeta
+      if (row.dictamen === 'CONFORME_LIBERADO' && resVal !== '') return false;
 
       const coliformesBiol = esFueraDeNorma(row.coliformes_totales);
       const eColiBiol = esFueraDeNorma(row.e_coli);
@@ -528,15 +532,10 @@
 
       const nuevaFechaStr = sumarDiasFechaStr(registroSeleccionadoModal.fecha_envio, diasASumar);
 
-      // Setea todos los valores fuera de norma a <10 para liberar completamente el lote
+      // Conserva todos los valores originales sin alterar los signos ni los números
       const registroActualizado = {
         ...registroSeleccionadoModal,
         fecha_envio: nuevaFechaStr,
-        coliformes_totales: esFueraDeNorma(registroSeleccionadoModal.coliformes_totales) ? '<10' : registroSeleccionadoModal.coliformes_totales,
-        e_coli: esFueraDeNorma(registroSeleccionadoModal.e_coli) ? '<10' : registroSeleccionadoModal.e_coli,
-        arb_mesofilos: esFueraDeNorma(registroSeleccionadoModal.arb_mesofilos) ? '<10' : registroSeleccionadoModal.arb_mesofilos,
-        enterobacterias: esFueraDeNorma(registroSeleccionadoModal.enterobacterias) ? '<10' : registroSeleccionadoModal.enterobacterias,
-        mohos_levaduras: esFueraDeNorma(registroSeleccionadoModal.mohos_levaduras) ? '<10' : registroSeleccionadoModal.mohos_levaduras,
         resiembra_eb: resultadoResiembra,
         dictamen: 'CONFORME_LIBERADO'
       };
@@ -579,9 +578,9 @@
               <td class="p-3 font-semibold">${reg.producto || ''}</td>
               <td class="p-3 font-mono font-bold text-blue-600">${reg.lote || ''}</td>
               <td class="p-3">${reg.resultado_bromatologico || 'OK'}</td>
-              <td class="p-3">${reg.coliformes_totales || '<10'}</td>
+              <td class="p-3">${reg.coliformes_totales || '/'}</td>
               <td class="p-3">${reg.e_coli || '/'}</td>
-              <td class="p-3">${reg.arb_mesofilos || 'OK'}</td>
+              <td class="p-3">${reg.arb_mesofilos || '/'}</td>
               <td class="p-3 font-bold text-slate-600">${reg.enterobacterias || '/'}</td>
               <td class="p-3 font-bold text-emerald-700 bg-emerald-50/50 border-x border-emerald-200">${resiembraVal}</td>
               <td class="p-3">${reg.mohos_levaduras || '/'}</td>
@@ -692,7 +691,7 @@
       const base64 = await toBase64(file);
       const mimeType = file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
 
-      const promptText = `Analiza la MATRIZ DE RESULTADOS HTST y extrae los datos en un arreglo JSON estricto:
+      const promptText = `Analiza la MATRIZ DE RESULTADOS HTST y extrae los datos en un arreglo JSON estricto conservando EXACTAMENTE los signos y números tal cual aparecen (ej. "<10", "10", "20"):
       [{
         "fecha_envio": "YYYY-MM-DD",
         "producto": "nombre",
@@ -708,7 +707,7 @@
         "responsable": "",
         "observaciones": ""
       }]
-      Reglas: Si ves √ pon "OK". Si la casilla tiene / o está vacía, pon "/". Retorna únicamente el JSON limpio sin bloques markdown.`;
+      Reglas: Si ves √ pon "OK". Si la casilla tiene / o está vacía, pon "/". Conserva signos como <10, <1. Retorna únicamente el JSON limpio sin bloques markdown.`;
 
       const modelo = 'gemini-3.6-flash';
       let intentos = 0;
