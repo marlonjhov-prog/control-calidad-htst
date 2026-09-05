@@ -146,7 +146,7 @@
           </div>
           <div>
             <label class="block font-medium text-slate-600 mb-1">Bromatológico:</label>
-            <input type="text" id="mBromatologico" value="OK" class="w-full p-2 border rounded-lg bg-slate-50">
+            <input type="text" id="mBromatologico" value="✓" class="w-full p-2 border rounded-lg bg-slate-50">
           </div>
           <div>
             <label class="block font-medium text-slate-600 mb-1">Coliformes Totales:</label>
@@ -154,19 +154,19 @@
           </div>
           <div>
             <label class="block font-medium text-slate-600 mb-1">E. Coli:</label>
-            <input type="text" id="mEcoli" value="<10" class="w-full p-2 border rounded-lg bg-slate-50">
+            <input type="text" id="mEcoli" value="/" class="w-full p-2 border rounded-lg bg-slate-50">
           </div>
           <div>
             <label class="block font-medium text-slate-600 mb-1">ARB Mesófilos:</label>
-            <input type="text" id="mArb" value="OK" class="w-full p-2 border rounded-lg bg-slate-50">
+            <input type="text" id="mArb" value="✓" class="w-full p-2 border rounded-lg bg-slate-50">
           </div>
           <div>
             <label class="block font-medium text-slate-600 mb-1">Enterobacterias:</label>
-            <input type="text" id="mEntero" value="<10" class="w-full p-2 border rounded-lg bg-slate-50">
+            <input type="text" id="mEntero" value="/" class="w-full p-2 border rounded-lg bg-slate-50">
           </div>
           <div>
             <label class="block font-medium text-slate-600 mb-1">Mohos y Levaduras:</label>
-            <input type="text" id="mMohos" value="<10" class="w-full p-2 border rounded-lg bg-slate-50">
+            <input type="text" id="mMohos" value="/" class="w-full p-2 border rounded-lg bg-slate-50">
           </div>
         </div>
 
@@ -362,12 +362,12 @@
         fecha_envio: document.getElementById('mFecha').value,
         producto: document.getElementById('mProducto').value || 'Sin Nombre',
         lote: document.getElementById('mLote').value || 'LOTE00',
-        resultado_bromatologico: document.getElementById('mBromatologico').value || 'OK',
+        resultado_bromatologico: document.getElementById('mBromatologico').value || '✓',
         coliformes_totales: document.getElementById('mColiformes').value || '<10',
-        e_coli: document.getElementById('mEcoli').value || '<10',
-        arb_mesofilos: document.getElementById('mArb').value || 'OK',
-        enterobacterias: document.getElementById('mEntero').value || '<10',
-        mohos_levaduras: document.getElementById('mMohos').value || '<10',
+        e_coli: document.getElementById('mEcoli').value || '/',
+        arb_mesofilos: document.getElementById('mArb').value || '✓',
+        enterobacterias: document.getElementById('mEntero').value || '/',
+        mohos_levaduras: document.getElementById('mMohos').value || '/',
         resiembra_eb: '/',
         dictamen: 'EVALUAR'
       }];
@@ -393,7 +393,7 @@
     function esFueraDeNorma(valor) {
       if (!valor) return false;
       const v = String(valor).trim();
-      if (v === '/' || v === '' || v === 'OK' || v.startsWith('<')) return false;
+      if (v === '/' || v === '' || v === '✓' || v === 'OK' || v.startsWith('<')) return false;
 
       const num = parseFloat(v.replace('>', ''));
       if (isNaN(num)) return false;
@@ -402,7 +402,7 @@
 
     function esLoteEnCuarentena(row) {
       const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-      if (resVal === '<10' || resVal === 'OK') return false;
+      if (resVal === '<10' || resVal === '✓' || resVal === 'OK') return false;
 
       const c = esFueraDeNorma(row.coliformes_totales);
       const e = esFueraDeNorma(row.e_coli);
@@ -542,7 +542,7 @@
             <td class="p-2.5 font-medium">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td>
             <td class="p-2.5 font-semibold">${row.producto || ''}</td>
             <td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote || ''}</td>
-            <td class="p-2.5">${row.resultado_bromatologico || 'OK'}</td>
+            <td class="p-2.5">${row.resultado_bromatologico || '✓'}</td>
             ${renderCeldaEvaluada(row.coliformes_totales)}
             ${renderCeldaEvaluada(row.e_coli)}
             ${renderCeldaEvaluada(row.arb_mesofilos)}
@@ -660,7 +660,7 @@
               <td class="p-3 font-bold text-blue-900">${reg.fecha_envio ? String(reg.fecha_envio).substring(0,10) : ''}</td>
               <td class="p-3 font-semibold">${reg.producto || ''}</td>
               <td class="p-3 font-mono font-bold text-blue-600">${reg.lote || ''}</td>
-              <td class="p-3">${reg.resultado_bromatologico || 'OK'}</td>
+              <td class="p-3">${reg.resultado_bromatologico || '✓'}</td>
               <td class="p-3">${reg.coliformes_totales || '/'}</td>
               <td class="p-3">${reg.e_coli || '/'}</td>
               <td class="p-3">${reg.arb_mesofilos || '/'}</td>
@@ -743,10 +743,10 @@
           fecha_envio: row['Fecha Envio'] || row['FECHA'] || row['fecha_envio'] || '',
           producto: row['PRODUCTO'] || row['producto'] || '',
           lote: row['LOTE'] || row['lote'] || '',
-          resultado_bromatologico: row['PRODUCCIÓN'] || 'OK',
+          resultado_bromatologico: row['PRODUCCIÓN'] || '✓',
           coliformes_totales: row['Coliformes Totales'] || '<10',
           e_coli: row['E. Coli'] || '/',
-          arb_mesofilos: row['ARB Mesófilos'] || 'OK',
+          arb_mesofilos: row['ARB Mesófilos'] || '✓',
           s_aureus: row['S.Aureus'] || '/',
           enterobacterias: row['Enterobacterias'] || '/',
           resiembra_eb: row['Resiembra EB'] || '/',
@@ -788,7 +788,15 @@
       });
     }
 
-    async function procesarConIA(file) {
+    async function esperarYMostrarConteo(segundos) {
+      const msg = document.getElementById('statusMessage');
+      for (let s = segundos; s > 0; s--) {
+        msg.innerText = `Cuota excedida. Reintentando automáticamente en ${s} segundos...`;
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+
+    async function procesarConIA(file, intento = 1) {
       const key = localStorage.getItem('HTST_GEMINI_KEY');
       if (!key) {
         alert('Configura primero tu API Key en la esquina superior derecha.');
@@ -798,7 +806,7 @@
 
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
-      msg.innerText = 'Analizando matriz de resultados con gemini-3.6-flash...';
+      msg.innerText = 'Analizando matriz con gemini-3.6-flash...';
 
       let base64Data = '';
       if (file.type.startsWith('image/')) {
@@ -810,15 +818,18 @@
       }
 
       const mimeType = file.type.startsWith('image/') ? 'image/jpeg' : file.type;
-      const promptText = `Extrae la matriz HTST en este JSON estricto sin texto adicional:
+      
+      // Prompt actualizado: PROHIBIDO poner OK, debe usar exactamente "✓" o "/"
+      const promptText = `Extrae la matriz de resultados HTST de la imagen y responde EXCLUSIVAMENTE con un arreglo JSON válido.
+      ESTRURA JSON REQUERIDA:
       [{
         "fecha_envio": "YYYY-MM-DD",
-        "producto": "nombre",
-        "lote": "código",
-        "resultado_bromatologico": "OK",
+        "producto": "nombre del producto",
+        "lote": "código de lote",
+        "resultado_bromatologico": "✓",
         "coliformes_totales": "<10",
         "e_coli": "/",
-        "arb_mesofilos": "OK",
+        "arb_mesofilos": "✓",
         "s_aureus": "/",
         "enterobacterias": "/",
         "resiembra_eb": "/",
@@ -826,9 +837,11 @@
         "responsable": "",
         "observaciones": ""
       }]
-      Reglas: Conserva exactos los números y signos como "<10", "10", "20", "OK", "/".`;
+      REGLAS ESTRICTAS:
+      1. NUNCA escribas la palabra "OK". Usa estrictamente el símbolo "✓" para marcas de visto o "cumple".
+      2. Si el casillero tiene una barra inclinada o está vacío, pon "/".
+      3. Conserva valores numéricos como "<10", "10", "20" tal como aparecen.`;
 
-      // Modelo único oficial compatible con la API
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${key}`;
 
       try {
@@ -848,11 +861,16 @@
           })
         });
 
-        const resData = await response.json();
-
         if (response.status === 429) {
-          throw new Error("Límite de peticiones por minuto alcanzado. Espera 1 minuto antes de subir otra foto o usa el botón 'Ingreso Manual'.");
+          if (intento <= 3) {
+            await esperarYMostrarConteo(25);
+            return await procesarConIA(file, intento + 1);
+          } else {
+            throw new Error("Límite de peticiones excedido en la versión gratuita. Por favor espera un minuto antes de reintentar o utiliza la opción 'Ingreso Manual'.");
+          }
         }
+
+        const resData = await response.json();
 
         if (resData.candidates && resData.candidates[0]?.content?.parts[0]?.text) {
           const rawText = resData.candidates[0].content.parts[0].text;
