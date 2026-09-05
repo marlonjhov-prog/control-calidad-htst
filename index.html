@@ -116,13 +116,13 @@
       </div>
     </section>
 
-    <!-- Modal de Liberación / Resiembra FSSC 22000 -->
+    <!-- Modal Formulario de Liberación -->
     <div id="modalLiberacion" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
       <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-slate-100">
         <div class="flex justify-between items-center border-b pb-3">
           <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
             <i data-lucide="shield-check" class="w-5 h-5 text-emerald-600"></i>
-            Liberación FSSC 22000 - Resiembra
+            Liberación FSSC 22000
           </h3>
           <button onclick="cerrarModalLiberacion()" class="text-slate-400 hover:text-slate-600 font-bold text-sm">✕</button>
         </div>
@@ -130,28 +130,55 @@
         <div class="space-y-2 text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
           <p><span class="font-semibold text-slate-500">Producto:</span> <span id="modalProducto" class="font-bold text-slate-800"></span></p>
           <p><span class="font-semibold text-slate-500">Lote:</span> <span id="modalLote" class="font-bold text-blue-600 font-mono"></span></p>
-          <p><span class="font-semibold text-slate-500">Fecha Inicial:</span> <span id="modalFechaOrigen"></span></p>
+          <p><span class="font-semibold text-slate-500">Fecha Ensayo Inicial:</span> <span id="modalFechaOrigen"></span></p>
         </div>
 
         <div class="space-y-3">
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Seleccionar Incubación de Resiembra (Horas Normativas):</label>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Horas de Incubación Normativa:</label>
             <select id="selectHorasIncubacion" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 bg-white font-medium">
-              <option value="24">24 Horas FSSC 22000 (Siguiente Día)</option>
-              <option value="48">48 Horas FSSC 22000 (Confirmación Extendida)</option>
+              <option value="24">24 Horas (+1 Día)</option>
+              <option value="48">48 Horas (+2 Días)</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Resultado de Resiembra EB:</label>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Resultado Confirmatorio Resiembra EB:</label>
             <input type="text" id="inputResultadoResiembra" value="<10" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 bg-white font-bold text-emerald-600">
           </div>
         </div>
 
         <div class="pt-2 flex justify-end gap-2">
           <button onclick="cerrarModalLiberacion()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg">Cancelar</button>
-          <button onclick="guardarLiberacion()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1">
-            <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar y Liberar Lote
+          <button onclick="guardarLiberacionYGenerarReporte()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1">
+            <i data-lucide="file-check" class="w-4 h-4"></i> Generar Reporte Liberado
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Nuevo Reporte Consolidado (Matriz Completa FSSC 22000) -->
+    <div id="modalReporteCompleto" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+      <div class="bg-white rounded-2xl p-6 max-w-5xl w-full shadow-2xl space-y-4 border border-slate-100 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center border-b pb-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="file-text" class="w-6 h-6 text-blue-600"></i>
+            <div>
+              <h3 class="font-bold text-sm text-slate-800">REPORTE FINAL DE LIBERACIÓN DE LOTE (FSSC 22000)</h3>
+              <p class="text-[10px] text-slate-500">Matriz de Resultados Microbiológicos Consolidada</p>
+            </div>
+          </div>
+          <button onclick="cerrarModalReporte()" class="text-slate-400 hover:text-slate-600 font-bold text-sm">✕</button>
+        </div>
+
+        <div id="contenidoReporte" class="overflow-x-auto border border-slate-200 rounded-xl">
+          <!-- Se llena dinámicamente con la matriz completa -->
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button onclick="window.print()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg flex items-center gap-1">
+            <i data-lucide="printer" class="w-4 h-4"></i> Imprimir / Exportar Reporte
+          </button>
+          <button onclick="cerrarModalReporte()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg">Aceptar</button>
         </div>
       </div>
     </div>
@@ -191,7 +218,7 @@
       </div>
     </section>
 
-    <!-- Tabla Principal -->
+    <!-- Tabla Principal (Matriz Inicial - Columna RESIEMBRA EB Oculta) -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="px-5 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <h2 class="font-bold text-xs text-slate-700">Matriz de Resultados HTST</h2>
@@ -209,7 +236,8 @@
               <th class="p-2.5">E. Coli</th>
               <th class="p-2.5">ARB Mesóf.</th>
               <th class="p-2.5">Enterob.</th>
-              <th id="thResiembra" class="p-2.5 hidden">Resiembra EB</th>
+              <!-- Columna Resiembra EB Oculta Físicamente en la Vista Inicial -->
+              <th class="p-2.5 hidden">Resiembra EB</th>
               <th class="p-2.5">Mohos/Lev.</th>
               <th class="p-2.5">Dictamen</th>
               <th class="p-2.5 text-center">Acciones</th>
@@ -217,7 +245,7 @@
           </thead>
           <tbody id="tablaResultados" class="divide-y divide-slate-100">
             <tr>
-              <td colspan="12" class="text-center py-6 text-slate-400">Cargando datos desde la base de datos...</td>
+              <td colspan="11" class="text-center py-6 text-slate-400">Cargando datos desde la base de datos...</td>
             </tr>
           </tbody>
         </table>
@@ -275,12 +303,9 @@
       }
     }
 
-    // Regla estricta: Detecta si Enterobacterias requiere resiembra/cuarentena
     function esDesviacionEnterobacterias(ebVal, resVal) {
       if (!ebVal || ebVal === '/' || ebVal === '') return false;
-      // Si la resiembra ya está procesada y conforme (<10 u OK), ya no es desviación activa
       if (resVal === '<10' || resVal === 'OK') return false;
-      // Cualquier presencia numérica o alerta en Enterobacterias marca la necesidad de resiembra
       return true;
     }
 
@@ -396,35 +421,20 @@
 
     function renderTabla(datos) {
       const tbody = document.getElementById('tablaResultados');
-      const thResiembra = document.getElementById('thResiembra');
-      
-      // Regla: La columna RESIEMBRA EB solo se muestra si existe explícitamente algún lote con resiembra procesada (<10 u OK)
-      const hayResiembrasLiberadas = datos.some(d => {
-        const res = d.resiembra_eb ? String(d.resiembra_eb).trim() : '';
-        return res === '<10' || res === 'OK';
-      });
-
-      if (hayResiembrasLiberadas) {
-        thResiembra.classList.remove('hidden');
-      } else {
-        thResiembra.classList.add('hidden');
-      }
-
       document.getElementById('kpiCount').innerText = `${datos.length} registros`;
 
       if (!datos || !datos.length) {
-        tbody.innerHTML = `<tr><td colspan="12" class="text-center py-6 text-slate-400">No se encontraron registros almacenados.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="text-center py-6 text-slate-400">No se encontraron registros almacenados.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = datos.map(row => {
         const ebVal = row.enterobacterias ? String(row.enterobacterias).trim() : '';
         const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-        
         const requiereResiembra = esDesviacionEnterobacterias(ebVal, resVal);
 
         let textoDictamen = 'CONFORME_LIBERADO';
-        let claseDictamen = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        let claseDictamen = 'bg-emerald-100 text-emerald-800 border-emerald-300 cursor-pointer hover:bg-emerald-200';
 
         if (requiereResiembra) {
           textoDictamen = 'REQUIERE_RESIEMBRA / EN_CUARENTENA';
@@ -441,10 +451,9 @@
             <td class="p-2.5">${row.e_coli || '/'}</td>
             <td class="p-2.5">${row.arb_mesofilos || 'OK'}</td>
             <td class="p-2.5 ${ebVal !== '/' && ebVal !== '' ? 'font-bold text-amber-600' : ''}">${row.enterobacterias || '/'}</td>
-            ${hayResiembrasLiberadas ? `<td class="p-2.5 font-bold text-emerald-600">${resVal === '<10' || resVal === 'OK' ? resVal : ''}</td>` : ''}
             <td class="p-2.5">${row.mohos_levaduras || '/'}</td>
             <td class="p-2.5">
-              <span onclick="abrirModalLiberacion('${row.id_registro}')" class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${claseDictamen}" title="${requiereResiembra ? 'Haz clic para liberar este lote' : ''}">
+              <span onclick="gestionarDictamenClick('${row.id_registro}')" class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${claseDictamen}">
                 ${textoDictamen}
               </span>
             </td>
@@ -459,15 +468,21 @@
       lucide.createIcons();
     }
 
-    function abrirModalLiberacion(idRegistro) {
+    function gestionarDictamenClick(idRegistro) {
       const reg = datosGlobales.find(d => d.id_registro === idRegistro);
       if (!reg) return;
 
       const ebVal = reg.enterobacterias ? String(reg.enterobacterias).trim() : '';
       const resVal = reg.resiembra_eb ? String(reg.resiembra_eb).trim() : '';
-      
-      if (!esDesviacionEnterobacterias(ebVal, resVal)) return;
 
+      if (esDesviacionEnterobacterias(ebVal, resVal)) {
+        abrirModalLiberacion(reg);
+      } else {
+        generarYMostrarReporteCompleto(reg);
+      }
+    }
+
+    function abrirModalLiberacion(reg) {
       registroSeleccionadoModal = reg;
       document.getElementById('modalProducto').innerText = reg.producto || '';
       document.getElementById('modalLote').innerText = reg.lote || '';
@@ -480,7 +495,7 @@
       registroSeleccionadoModal = null;
     }
 
-    async function guardarLiberacion() {
+    async function guardarLiberacionYGenerarReporte() {
       if (!registroSeleccionadoModal) return;
 
       const horas = parseInt(document.getElementById('selectHorasIncubacion').value, 10);
@@ -497,13 +512,66 @@
         dictamen: 'CONFORME_LIBERADO'
       };
 
+      cerrarModalLiberacion();
+
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
       msg.innerText = 'Liberando lote y actualizando fecha FSSC 22000...';
 
-      cerrarModalLiberacion();
-
       await enviarABaseDeDatos({ action: 'CREATE', data: [registroActualizado] });
+
+      // Despliega el Reporte Consolidado Final con la Matriz Completa
+      generarYMostrarReporteCompleto(registroActualizado);
+    }
+
+    function generarYMostrarReporteCompleto(reg) {
+      const container = document.getElementById('contenidoReporte');
+      const resiembraVal = reg.resiembra_eb ? String(reg.resiembra_eb).trim() : '<10';
+
+      container.innerHTML = `
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-700 uppercase font-bold border-b">
+            <tr>
+              <th class="p-3">FECHA LIBERACIÓN</th>
+              <th class="p-3">PRODUCTO</th>
+              <th class="p-3">LOTE</th>
+              <th class="p-3">BROMAT.</th>
+              <th class="p-3">COLIFORMES</th>
+              <th class="p-3">E. COLI</th>
+              <th class="p-3">ARB MESÓF.</th>
+              <th class="p-3">ENTEROB.</th>
+              <th class="p-3 bg-emerald-50 text-emerald-800 border-x border-emerald-200">RESIEMBRA EB</th>
+              <th class="p-3">MOHOS/LEV.</th>
+              <th class="p-3">DICTAMEN FINAL</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 font-medium">
+            <tr class="bg-white">
+              <td class="p-3 font-bold text-blue-900">${reg.fecha_envio ? String(reg.fecha_envio).substring(0,10) : ''}</td>
+              <td class="p-3 font-semibold">${reg.producto || ''}</td>
+              <td class="p-3 font-mono font-bold text-blue-600">${reg.lote || ''}</td>
+              <td class="p-3">${reg.resultado_bromatologico || 'OK'}</td>
+              <td class="p-3">${reg.coliformes_totales || '<10'}</td>
+              <td class="p-3">${reg.e_coli || '/'}</td>
+              <td class="p-3">${reg.arb_mesofilos || 'OK'}</td>
+              <td class="p-3 font-bold text-slate-600">${reg.enterobacterias || '/'}</td>
+              <td class="p-3 font-bold text-emerald-700 bg-emerald-50/50 border-x border-emerald-200">${resiembraVal}</td>
+              <td class="p-3">${reg.mohos_levaduras || '/'}</td>
+              <td class="p-3">
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  CONFORME_LIBERADO
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+
+      document.getElementById('modalReporteCompleto').classList.remove('hidden');
+    }
+
+    function cerrarModalReporte() {
+      document.getElementById('modalReporteCompleto').classList.add('hidden');
     }
 
     function poblarFiltros() {
