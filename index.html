@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Calidad HTST - App Multi-equipo</title>
+  <title>Control de Calidad HTST - Dashboard & App</title>
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
@@ -16,7 +17,7 @@
     <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
       <div class="flex items-center space-x-3">
         <i data-lucide="shield-check" class="w-7 h-7 text-emerald-400"></i>
-        <h1 class="text-lg font-bold">App HTST | Control Microbiológico</h1>
+        <h1 class="text-lg font-bold">App HTST | Panel & Control Microbiológico</h1>
       </div>
       <div class="flex items-center gap-2">
         <button onclick="cargarDatosBD()" title="Actualizar Datos" class="bg-blue-800 hover:bg-blue-700 text-blue-100 p-2 rounded-lg text-xs flex items-center gap-1 border border-blue-700">
@@ -48,6 +49,70 @@
       <div id="keyStatus" class="text-[11px]"></div>
     </section>
 
+    <!-- Módulo de KPIs Ejecutivos -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Muestras Totales</p>
+          <h3 id="kpiTotal" class="text-2xl font-black text-slate-800 mt-1">0</h3>
+        </div>
+        <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+          <i data-lucide="flask-conical" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Aprobación Directa</p>
+          <h3 id="kpiAprobados" class="text-2xl font-black text-emerald-600 mt-1">0%</h3>
+        </div>
+        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+          <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Requiere Resiembra EB</p>
+          <h3 id="kpiResiembras" class="text-2xl font-black text-amber-600 mt-1">0</h3>
+        </div>
+        <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
+          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Lotes Analizados</p>
+          <h3 id="kpiLotes" class="text-2xl font-black text-indigo-600 mt-1">0</h3>
+        </div>
+        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+          <i data-lucide="boxes" class="w-6 h-6"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Módulo de Gráficos Analíticos -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-600"></i> Dictamen Microbiológico por Producto
+        </h3>
+        <div class="h-64 relative">
+          <canvas id="chartProductos"></canvas>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-600"></i> Proporción de Calidad General
+        </h3>
+        <div class="h-64 relative flex items-center justify-center">
+          <canvas id="chartDictamen"></canvas>
+        </div>
+      </div>
+    </section>
+
     <!-- Módulo de Carga Multidocumento -->
     <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
       <h2 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
@@ -67,11 +132,11 @@
     <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-3">
       <div>
         <label class="block text-xs font-medium text-slate-500 mb-1">Filtrar por Producto:</label>
-        <select id="filterProducto" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none"></select>
+        <select id="filterProducto" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none bg-slate-50"></select>
       </div>
       <div>
         <label class="block text-xs font-medium text-slate-500 mb-1">Filtrar por Lote:</label>
-        <select id="filterLote" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none"></select>
+        <select id="filterLote" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none bg-slate-50"></select>
       </div>
     </section>
 
@@ -113,6 +178,8 @@
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKUoOy17vZnjqKjk8FnjsM7riy2IyGWOgjKWGBjE5UnJSFdZnLsZoiZi9GeZFQtDfOxQ/exec';
     let datosGlobales = [];
+    let chartProductosInstance = null;
+    let chartDictamenInstance = null;
 
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
@@ -150,10 +217,96 @@
           datosGlobales = json.data;
           poblarFiltros();
           renderTabla(datosGlobales);
+          actualizarDashboard(datosGlobales);
         }
       } catch (err) {
         console.error("Error al obtener datos:", err);
       }
+    }
+
+    function actualizarDashboard(datos) {
+      const total = datos.length;
+      let resiembras = 0;
+      let lotesUnicos = new Set();
+
+      datos.forEach(row => {
+        if (row.lote) lotesUnicos.add(row.lote);
+        const reqRes = row.resiembra_eb && String(row.resiembra_eb).trim() !== '/' && String(row.resiembra_eb).trim() !== '' && String(row.resiembra_eb).trim() !== 'OK';
+        if (reqRes) resiembras++;
+      });
+
+      const aprobadosDirectos = total > 0 ? (((total - resiembras) / total) * 100).toFixed(1) : 0;
+
+      document.getElementById('kpiTotal').innerText = total;
+      document.getElementById('kpiAprobados').innerText = `${aprobadosDirectos}%`;
+      document.getElementById('kpiResiembras').innerText = resiembras;
+      document.getElementById('kpiLotes').innerText = lotesUnicos.size;
+
+      renderCharts(datos);
+    }
+
+    function renderCharts(datos) {
+      const productosMap = {};
+      let totalmenteAprobados = 0;
+      let conResiembra = 0;
+
+      datos.forEach(row => {
+        const prod = row.producto || 'Desconocido';
+        const reqRes = row.resiembra_eb && String(row.resiembra_eb).trim() !== '/' && String(row.resiembra_eb).trim() !== '' && String(row.resiembra_eb).trim() !== 'OK';
+
+        if (!productosMap[prod]) productosMap[prod] = { aprobados: 0, resiembras: 0 };
+
+        if (reqRes) {
+          productosMap[prod].resiembras++;
+          conResiembra++;
+        } else {
+          productosMap[prod].aprobados++;
+          totalmenteAprobados++;
+        }
+      });
+
+      const labelsProds = Object.keys(productosMap);
+      const dataAprobados = labelsProds.map(p => productosMap[p].aprobados);
+      const dataResiembras = labelsProds.map(p => productosMap[p].resiembras);
+
+      // Destruir gráficos previos si existen
+      if (chartProductosInstance) chartProductosInstance.destroy();
+      if (chartDictamenInstance) chartDictamenInstance.destroy();
+
+      // Gráfico de Barras
+      const ctxBar = document.getElementById('chartProductos').getContext('2d');
+      chartProductosInstance = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: labelsProds,
+          datasets: [
+            { label: 'Aprobados', data: dataAprobados, backgroundColor: '#10b981' },
+            { label: 'Requiere Resiembra EB', data: dataResiembras, backgroundColor: '#f59e0b' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }
+        }
+      });
+
+      // Gráfico Donut
+      const ctxPie = document.getElementById('chartDictamen').getContext('2d');
+      chartDictamenInstance = new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+          labels: ['Aprobado Directo', 'Requiere Resiembra'],
+          datasets: [{
+            data: [totalmenteAprobados, conResiembra],
+            backgroundColor: ['#10b981', '#f59e0b']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
     }
 
     function renderTabla(datos) {
@@ -209,6 +362,7 @@
       const lote = document.getElementById('filterLote').value;
       const filtrados = datosGlobales.filter(d => (!prod || d.producto === prod) && (!lote || d.lote === lote));
       renderTabla(filtrados);
+      actualizarDashboard(filtrados);
     }
 
     async function eliminarRegistro(idRegistro) {
@@ -279,7 +433,6 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // PROCESAMIENTO FIX EXCLUSIVO CON MODELO GEMINI 3.6 FLASH
     async function procesarConIA(file) {
       const key = localStorage.getItem('HTST_GEMINI_KEY');
       if (!key) {
@@ -312,7 +465,6 @@
       }]
       Reglas: Si ves √ pon "OK". Si la casilla tiene / o está vacía, pon "/". Retorna únicamente el JSON limpio sin bloques markdown.`;
 
-      // MODELO EXIGIDO OFICIALMENTE POR TU CLAVE API
       const modelo = 'gemini-3.6-flash';
       let intentos = 0;
       const maxIntentos = 3;
