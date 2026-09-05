@@ -19,7 +19,7 @@
         <i data-lucide="shield-check" class="w-7 h-7 text-emerald-400"></i>
         <div>
           <h1 class="text-lg font-bold leading-tight">App HTST | Control Microbiológico</h1>
-          <p class="text-[10px] text-blue-200">Sistema Multi-equipo de Liberación FSSC 22000</p>
+          <p class="text-[10px] text-blue-200">Liberación y Control FSSC 22000</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -52,7 +52,7 @@
       <div id="keyStatus" class="text-[11px]"></div>
     </section>
 
-    <!-- Módulo de KPIs Ejecutivos -->
+    <!-- Módulo de KPIs Executivos -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
         <div>
@@ -76,7 +76,7 @@
 
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">En Cuarentena / Fuera Norma</p>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">En Cuarentena / Resiembra</p>
           <h3 id="kpiResiembras" class="text-2xl font-black text-rose-600 mt-1">0</h3>
         </div>
         <div class="p-3 bg-rose-50 text-rose-600 rounded-lg">
@@ -122,7 +122,7 @@
         <div class="flex justify-between items-center border-b pb-3">
           <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
             <i data-lucide="shield-check" class="w-5 h-5 text-emerald-600"></i>
-            Liberación FSSC 22000
+            Procesar Resiembra y Liberación FSSC 22000
           </h3>
           <button onclick="cerrarModalLiberacion()" class="text-slate-400 hover:text-slate-600 font-bold text-sm">✕</button>
         </div>
@@ -130,7 +130,7 @@
         <div class="space-y-2 text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
           <p><span class="font-semibold text-slate-500">Producto:</span> <span id="modalProducto" class="font-bold text-slate-800"></span></p>
           <p><span class="font-semibold text-slate-500">Lote:</span> <span id="modalLote" class="font-bold text-blue-600 font-mono"></span></p>
-          <p><span class="font-semibold text-slate-500">Fecha Ensayo Inicial:</span> <span id="modalFechaOrigen"></span></p>
+          <p><span class="font-semibold text-slate-500">Fecha Ensayo Inicial:</span> <span id="modalFechaOrigen" class="font-bold"></span></p>
         </div>
 
         <div class="space-y-3">
@@ -150,13 +150,13 @@
         <div class="pt-2 flex justify-end gap-2">
           <button onclick="cerrarModalLiberacion()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg">Cancelar</button>
           <button onclick="guardarLiberacionYGenerarReporte()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1">
-            <i data-lucide="file-check" class="w-4 h-4"></i> Generar Reporte Liberado
+            <i data-lucide="file-check" class="w-4 h-4"></i> Crear Registro Liberado
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Modal Nuevo Reporte Consolidado (Matriz Completa FSSC 22000) -->
+    <!-- Modal Reporte Consolidado FSSC 22000 -->
     <div id="modalReporteCompleto" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
       <div class="bg-white rounded-2xl p-6 max-w-5xl w-full shadow-2xl space-y-4 border border-slate-100 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center border-b pb-3">
@@ -164,15 +164,13 @@
             <i data-lucide="file-text" class="w-6 h-6 text-blue-600"></i>
             <div>
               <h3 class="font-bold text-sm text-slate-800">REPORTE FINAL DE LIBERACIÓN DE LOTE (FSSC 22000)</h3>
-              <p class="text-[10px] text-slate-500">Matriz de Resultados Microbiológicos Consolidada</p>
+              <p class="text-[10px] text-slate-500">Matriz Consolidada de Resultados Conformes</p>
             </div>
           </div>
           <button onclick="cerrarModalReporte()" class="text-slate-400 hover:text-slate-600 font-bold text-sm">✕</button>
         </div>
 
-        <div id="contenidoReporte" class="overflow-x-auto border border-slate-200 rounded-xl">
-          <!-- Se llena dinámicamente con la matriz completa -->
-        </div>
+        <div id="contenidoReporte" class="overflow-x-auto border border-slate-200 rounded-xl"></div>
 
         <div class="flex justify-end gap-2 pt-2">
           <button onclick="window.print()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-lg flex items-center gap-1">
@@ -183,7 +181,7 @@
       </div>
     </div>
 
-    <!-- Módulo de Carga Multidocumento -->
+    <!-- Módulo de Carga -->
     <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
       <h2 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-2">
         <i data-lucide="upload-cloud" class="w-4 h-4 text-blue-600"></i>
@@ -198,7 +196,7 @@
       <div id="statusMessage" class="mt-2 text-xs hidden"></div>
     </section>
 
-    <!-- Filtros Discretos -->
+    <!-- Filtros -->
     <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-3">
       <div>
         <label class="block text-xs font-medium text-slate-500 mb-1">Filtrar por Producto:</label>
@@ -275,7 +273,7 @@
       if (key) {
         localStorage.setItem('HTST_GEMINI_KEY', key);
         document.getElementById('keyStatus').className = 'text-xs text-emerald-600 font-bold';
-        document.getElementById('keyStatus').innerText = '✓ Clave guardada de forma segura en este navegador.';
+        document.getElementById('keyStatus').innerText = '✓ Clave guardada de forma segura.';
       }
     }
 
@@ -302,7 +300,7 @@
       }
     }
 
-    // Evaluación estricta de fuera de norma: Cualquier número >= 10 o que no empiece por '<' ni sea 'OK'/'/'
+    // Comprueba estrictamente si un valor numerico sobrepasa o es igual al limite de 10
     function esFueraDeNorma(valor) {
       if (!valor) return false;
       const v = String(valor).trim();
@@ -313,21 +311,19 @@
       return num >= 10;
     }
 
-    function evaluarLoteCompleto(row) {
-      // Si la resiembra ya está explícitamente registrada como liberada (<10 o OK), no está en cuarentena
+    // Determina de forma biologica estricta si el lote requiere resiembra/cuarentena
+    function esLoteEnCuarentena(row) {
+      // Si ya tiene resiembra procesada como <10 u OK, esta libre
       const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
       if (resVal === '<10' || resVal === 'OK') return false;
 
-      // Si el dictamen explícito en base de datos dice que fue liberado, se respeta
-      if (row.dictamen === 'CONFORME_LIBERADO' && resVal !== '') return false;
+      const c = esFueraDeNorma(row.coliformes_totales);
+      const e = esFueraDeNorma(row.e_coli);
+      const a = esFueraDeNorma(row.arb_mesofilos);
+      const eb = esFueraDeNorma(row.enterobacterias);
+      const m = esFueraDeNorma(row.mohos_levaduras);
 
-      const coliformesBiol = esFueraDeNorma(row.coliformes_totales);
-      const eColiBiol = esFueraDeNorma(row.e_coli);
-      const arbBiol = esFueraDeNorma(row.arb_mesofilos);
-      const ebBiol = esFueraDeNorma(row.enterobacterias);
-      const mohosBiol = esFueraDeNorma(row.mohos_levaduras);
-
-      return coliformesBiol || eColiBiol || arbBiol || ebBiol || mohosBiol;
+      return c || e || a || eb || m;
     }
 
     function aplicarFiltros() {
@@ -338,9 +334,9 @@
       let filtrados = datosGlobales.filter(d => (!prod || d.producto === prod) && (!lote || d.lote === lote));
 
       if (estado === 'LIBERADOS') {
-        filtrados = filtrados.filter(row => !evaluarLoteCompleto(row));
+        filtrados = filtrados.filter(row => !esLoteEnCuarentena(row));
       } else if (estado === 'CUARENTENA') {
-        filtrados = filtrados.filter(row => evaluarLoteCompleto(row));
+        filtrados = filtrados.filter(row => esLoteEnCuarentena(row));
       }
 
       renderTabla(filtrados);
@@ -354,7 +350,7 @@
 
       datos.forEach(row => {
         if (row.lote) lotesUnicos.add(row.lote);
-        if (evaluarLoteCompleto(row)) cuarentenas++;
+        if (esLoteEnCuarentena(row)) cuarentenas++;
       });
 
       const porcentajeCumplimiento = total > 0 ? (((total - cuarentenas) / total) * 100).toFixed(1) : 0;
@@ -374,7 +370,7 @@
 
       datos.forEach(row => {
         const prod = row.producto || 'Desconocido';
-        const enCuarentena = evaluarLoteCompleto(row);
+        const enCuarentena = esLoteEnCuarentena(row);
 
         if (!productosMap[prod]) productosMap[prod] = { aprobados: 0, cuarentena: 0 };
 
@@ -444,12 +440,12 @@
       }
 
       tbody.innerHTML = datos.map(row => {
-        const requiereResiembra = evaluarLoteCompleto(row);
+        const enCuarentena = esLoteEnCuarentena(row);
 
         let textoDictamen = 'CONFORME_LIBERADO';
         let claseDictamen = 'bg-emerald-100 text-emerald-800 border-emerald-300 cursor-pointer hover:bg-emerald-200';
 
-        if (requiereResiembra) {
+        if (enCuarentena) {
           textoDictamen = 'REQUIERE_RESIEMBRA / EN_CUARENTENA';
           claseDictamen = 'bg-rose-100 text-rose-800 border-rose-300 cursor-pointer hover:bg-rose-200';
         }
@@ -485,7 +481,7 @@
       const reg = datosGlobales.find(d => d.id_registro === idRegistro);
       if (!reg) return;
 
-      if (evaluarLoteCompleto(reg)) {
+      if (esLoteEnCuarentena(reg)) {
         abrirModalLiberacion(reg);
       } else {
         generarYMostrarReporteCompleto(reg);
@@ -532,9 +528,10 @@
 
       const nuevaFechaStr = sumarDiasFechaStr(registroSeleccionadoModal.fecha_envio, diasASumar);
 
-      // Conserva todos los valores originales sin alterar los signos ni los números
-      const registroActualizado = {
+      // Crea un nuevo registro con la fecha posterior conservando todos los signos originales
+      const nuevoRegistroLiberado = {
         ...registroSeleccionadoModal,
+        id_registro: '', // Forzar nuevo registro
         fecha_envio: nuevaFechaStr,
         resiembra_eb: resultadoResiembra,
         dictamen: 'CONFORME_LIBERADO'
@@ -544,11 +541,11 @@
 
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
-      msg.innerText = 'Liberando lote y generando nueva fecha FSSC 22000...';
+      msg.innerText = 'Registrando nueva fecha y liberando lote en FSSC 22000...';
 
-      await enviarABaseDeDatos({ action: 'CREATE', data: [registroActualizado] });
+      await enviarABaseDeDatos({ action: 'CREATE', data: [nuevoRegistroLiberado] });
 
-      generarYMostrarReporteCompleto(registroActualizado);
+      generarYMostrarReporteCompleto(nuevoRegistroLiberado);
     }
 
     function generarYMostrarReporteCompleto(reg) {
@@ -707,7 +704,7 @@
         "responsable": "",
         "observaciones": ""
       }]
-      Reglas: Si ves √ pon "OK". Si la casilla tiene / o está vacía, pon "/". Conserva signos como <10, <1. Retorna únicamente el JSON limpio sin bloques markdown.`;
+      Reglas: Conserva signos como <10, <1 y números. Retorna únicamente el JSON limpio sin bloques markdown.`;
 
       const modelo = 'gemini-3.6-flash';
       let intentos = 0;
