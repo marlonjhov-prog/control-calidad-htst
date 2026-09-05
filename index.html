@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Calidad HTST - FSSC 22000 Audit Ready</title>
+  <title>Control de Calidad HTST - Dashboard & App</title>
   <link rel="manifest" href="manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -19,7 +19,7 @@
         <i data-lucide="shield-check" class="w-7 h-7 text-emerald-400"></i>
         <div>
           <h1 class="text-lg font-bold leading-tight">App HTST | Control Microbiológico</h1>
-          <p class="text-[10px] text-blue-200">Cumplimiento FSSC 22000 & Calidad de Liberación</p>
+          <p class="text-[10px] text-blue-200">Sistema Integrado de Liberación de Lotes</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -52,31 +52,11 @@
       <div id="keyStatus" class="text-[11px]"></div>
     </section>
 
-    <!-- Barra de Control del Modo Auditoría -->
-    <section class="bg-emerald-900 text-white p-4 rounded-xl shadow-md flex flex-wrap justify-between items-center gap-3">
-      <div class="flex items-center gap-3">
-        <div class="p-2 bg-emerald-800 rounded-lg">
-          <i data-lucide="award" class="w-5 h-5 text-emerald-300"></i>
-        </div>
-        <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-200">Modo Presentación FSSC 22000</h3>
-          <p class="text-[11px] text-emerald-100">Filtra no conformidades en proceso y muestra solo lotes liberados conformes.</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-3 bg-emerald-800 px-4 py-2 rounded-lg border border-emerald-700">
-        <span class="text-xs font-bold text-white">Ocultar Pendientes de Resiembra:</span>
-        <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" id="toggleAuditoria" onchange="aplicarFiltros()" class="sr-only peer">
-          <div class="w-11 h-6 bg-emerald-950 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-400"></div>
-        </label>
-      </div>
-    </section>
-
     <!-- Módulo de KPIs Ejecutivos -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Muestras Registradas</p>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Muestras Analizadas</p>
           <h3 id="kpiTotal" class="text-2xl font-black text-slate-800 mt-1">0</h3>
         </div>
         <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
@@ -86,7 +66,7 @@
 
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Tasa Liberación Conforme</p>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Cumplimiento de Liberación</p>
           <h3 id="kpiAprobados" class="text-2xl font-black text-emerald-600 mt-1">0%</h3>
         </div>
         <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
@@ -96,17 +76,17 @@
 
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Lotes en Reensayo (EB)</p>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Lotes en Cuarentena (24h)</p>
           <h3 id="kpiResiembras" class="text-2xl font-black text-amber-600 mt-1">0</h3>
         </div>
         <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
-          <i data-lucide="alert-circle" class="w-6 h-6"></i>
+          <i data-lucide="clock" class="w-6 h-6"></i>
         </div>
       </div>
 
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Lotes Totales Evaluados</p>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Lotes Procesados</p>
           <h3 id="kpiLotes" class="text-2xl font-black text-indigo-600 mt-1">0</h3>
         </div>
         <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
@@ -119,7 +99,7 @@
     <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
         <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-600"></i> Dictamen Microbiológico por Producto
+          <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-600"></i> Estado de Lotes por Producto
         </h3>
         <div class="h-64 relative">
           <canvas id="chartProductos"></canvas>
@@ -128,7 +108,7 @@
 
       <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
         <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-600"></i> Proporción de Calidad General
+          <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-600"></i> Proporción de Conformes
         </h3>
         <div class="h-64 relative flex items-center justify-center">
           <canvas id="chartDictamen"></canvas>
@@ -151,8 +131,8 @@
       <div id="statusMessage" class="mt-2 text-xs hidden"></div>
     </section>
 
-    <!-- Filtros -->
-    <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-3">
+    <!-- Filtros Discretos -->
+    <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-3">
       <div>
         <label class="block text-xs font-medium text-slate-500 mb-1">Filtrar por Producto:</label>
         <select id="filterProducto" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none bg-slate-50"></select>
@@ -160,6 +140,14 @@
       <div>
         <label class="block text-xs font-medium text-slate-500 mb-1">Filtrar por Lote:</label>
         <select id="filterLote" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none bg-slate-50"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1">Estado de Liberación:</label>
+        <select id="filterEstado" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none bg-slate-50">
+          <option value="TODOS">Todos los registros</option>
+          <option value="LIBERADOS" selected>Solo Liberados (Conformes)</option>
+          <option value="CUARENTENA">En Cuarentena (En proceso)</option>
+        </select>
       </div>
     </section>
 
@@ -237,7 +225,7 @@
         const res = await fetch(APPS_SCRIPT_URL);
         const json = await res.json();
         if (json.status === 'SUCCESS') {
-          datosGlobales = json.data;
+          datosGlobales = consolidarResiembras(json.data);
           poblarFiltros();
           aplicarFiltros();
         }
@@ -246,19 +234,43 @@
       }
     }
 
+    // CONSOLIDA RESIEMBRAS: Si existe una lectura posterior del mismo Producto + Lote, actualiza los valores
+    function consolidarResiembras(datos) {
+      const lotesMap = {};
+
+      datos.forEach(item => {
+        const key = `${item.producto}_${item.lote}`;
+
+        if (!lotesMap[key]) {
+          lotesMap[key] = { ...item };
+        } else {
+          // Si el registro posterior trae la confirmación de resiembra, actualizar los datos
+          if (item.resiembra_eb && item.resiembra_eb !== '/' && item.resiembra_eb !== '') {
+            lotesMap[key].resiembra_eb = item.resiembra_eb;
+            lotesMap[key].fecha_envio = item.fecha_envio;
+          }
+        }
+      });
+
+      return Object.values(lotesMap);
+    }
+
     function aplicarFiltros() {
       const prod = document.getElementById('filterProducto').value;
       const lote = document.getElementById('filterLote').value;
-      const modoAuditoria = document.getElementById('toggleAuditoria').checked;
+      const estado = document.getElementById('filterEstado').value;
 
       let filtrados = datosGlobales.filter(d => (!prod || d.producto === prod) && (!lote || d.lote === lote));
 
-      if (modoAuditoria) {
-        // En modo auditoría, ocultar lotes con resiembra pendiente y mostrar solo conformes o resiembras aprobadas
+      if (estado === 'LIBERADOS') {
         filtrados = filtrados.filter(row => {
-          const resiembraVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-          const esPendienteResiembra = resiembraVal !== '' && resiembraVal !== '/' && resiembraVal !== 'OK' && resiembraVal !== '<10' && resiembraVal !== '<1';
-          return !esPendienteResiembra;
+          const res = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
+          return res === '' || res === '/' || res === 'OK' || res === '<10' || res === '<1';
+        });
+      } else if (estado === 'CUARENTENA') {
+        filtrados = filtrados.filter(row => {
+          const res = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
+          return res !== '' && res !== '/' && res !== 'OK' && res !== '<10' && res !== '<1';
         });
       }
 
@@ -268,21 +280,20 @@
 
     function actualizarDashboard(datos) {
       const total = datos.length;
-      let resiembras = 0;
+      let cuarentenas = 0;
       let lotesUnicos = new Set();
 
       datos.forEach(row => {
         if (row.lote) lotesUnicos.add(row.lote);
-        const resiembraVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-        const reqRes = resiembraVal !== '' && resiembraVal !== '/' && resiembraVal !== 'OK' && resiembraVal !== '<10' && resiembraVal !== '<1';
-        if (reqRes) resiembras++;
+        const res = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
+        if (res !== '' && res !== '/' && res !== 'OK' && res !== '<10' && res !== '<1') cuarentenas++;
       });
 
-      const aprobadosDirectos = total > 0 ? (((total - resiembras) / total) * 100).toFixed(1) : 0;
+      const porcentajeCumplimiento = total > 0 ? (((total - cuarentenas) / total) * 100).toFixed(1) : 0;
 
       document.getElementById('kpiTotal').innerText = total;
-      document.getElementById('kpiAprobados').innerText = `${aprobadosDirectos}%`;
-      document.getElementById('kpiResiembras').innerText = resiembras;
+      document.getElementById('kpiAprobados').innerText = `${porcentajeCumplimiento}%`;
+      document.getElementById('kpiResiembras').innerText = cuarentenas;
       document.getElementById('kpiLotes').innerText = lotesUnicos.size;
 
       renderCharts(datos);
@@ -295,13 +306,13 @@
 
       datos.forEach(row => {
         const prod = row.producto || 'Desconocido';
-        const resiembraVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-        const reqRes = resiembraVal !== '' && resiembraVal !== '/' && resiembraVal !== 'OK' && resiembraVal !== '<10' && resiembraVal !== '<1';
+        const res = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
+        const enCuarentena = res !== '' && res !== '/' && res !== 'OK' && res !== '<10' && res !== '<1';
 
-        if (!productosMap[prod]) productosMap[prod] = { aprobados: 0, resiembras: 0 };
+        if (!productosMap[prod]) productosMap[prod] = { aprobados: 0, cuarentena: 0 };
 
-        if (reqRes) {
-          productosMap[prod].resiembras++;
+        if (enCuarentena) {
+          productosMap[prod].cuarentena++;
           conResiembra++;
         } else {
           productosMap[prod].aprobados++;
@@ -311,7 +322,7 @@
 
       const labelsProds = Object.keys(productosMap);
       const dataAprobados = labelsProds.map(p => productosMap[p].aprobados);
-      const dataResiembras = labelsProds.map(p => productosMap[p].resiembras);
+      const dataCuarentenas = labelsProds.map(p => productosMap[p].cuarentena);
 
       if (chartProductosInstance) chartProductosInstance.destroy();
       if (chartDictamenInstance) chartDictamenInstance.destroy();
@@ -323,7 +334,7 @@
           labels: labelsProds,
           datasets: [
             { label: 'Conforme / Liberado', data: dataAprobados, backgroundColor: '#10b981' },
-            { label: 'En Reensayo EB', data: dataResiembras, backgroundColor: '#f59e0b' }
+            { label: 'En Cuarentena (24h)', data: dataCuarentenas, backgroundColor: '#f59e0b' }
           ]
         },
         options: {
@@ -337,7 +348,7 @@
       chartDictamenInstance = new Chart(ctxPie, {
         type: 'doughnut',
         data: {
-          labels: ['Conforme / Liberado', 'En Reensayo'],
+          labels: ['Conforme / Liberado', 'En Cuarentena'],
           datasets: [{
             data: [totalmenteAprobados, conResiembra],
             backgroundColor: ['#10b981', '#f59e0b']
@@ -360,11 +371,11 @@
       }
 
       tbody.innerHTML = datos.map(row => {
-        const resiembraVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-        const reqResiembra = resiembraVal !== '' && resiembraVal !== '/' && resiembraVal !== 'OK' && resiembraVal !== '<10' && resiembraVal !== '<1';
+        const res = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
+        const enCuarentena = res !== '' && res !== '/' && res !== 'OK' && res !== '<10' && res !== '<1';
 
-        // Muestra resiembra ajustada a <10 si ya fue resembrada y aprobada
-        const valorResiembraMostrar = (resiembraVal === 'OK' || resiembraVal === '<10' || resiembraVal === '<1') ? '<10' : (row.resiembra_eb || '/');
+        // Si ya fue resembrado y dio OK / <10, se muestra <10
+        const resiembraTexto = enCuarentena ? 'EN_CUARENTENA' : ((res === 'OK' || res === '<10' || res === '<1') ? '<10' : (row.resiembra_eb || '/'));
 
         return `
           <tr class="hover:bg-slate-50 border-b border-slate-100">
@@ -376,11 +387,11 @@
             <td class="p-2.5">${row.e_coli || '/'}</td>
             <td class="p-2.5">${row.arb_mesofilos || 'OK'}</td>
             <td class="p-2.5 ${row.enterobacterias && row.enterobacterias !== '/' ? 'font-bold text-amber-600' : ''}">${row.enterobacterias || '/'}</td>
-            <td class="p-2.5 ${reqResiembra ? 'font-bold text-amber-600 bg-amber-50' : 'text-emerald-600 font-bold'}">${valorResiembraMostrar}</td>
+            <td class="p-2.5 ${enCuarentena ? 'font-bold text-amber-600 bg-amber-50' : 'text-emerald-600 font-bold'}">${resiembraTexto}</td>
             <td class="p-2.5">${row.mohos_levaduras || '/'}</td>
             <td class="p-2.5">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${reqResiembra ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-emerald-100 text-emerald-800 border-emerald-300'}">
-                ${reqResiembra ? 'REENSAYO_PENDIENTE' : 'CONFORME_LIBERADO'}
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${enCuarentena ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-emerald-100 text-emerald-800 border-emerald-300'}">
+                ${enCuarentena ? 'EN_CUARENTENA' : 'CONFORME_LIBERADO'}
               </span>
             </td>
             <td class="p-2.5 text-center">
