@@ -669,7 +669,6 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // Redimensionado de imagen en el navegador para acelerar la subida a Gemini
     async function optimizarImagenBase64(file) {
       return new Promise((resolve) => {
         const reader = new FileReader();
@@ -708,7 +707,7 @@
 
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
-      msg.innerText = 'Optimizando imagen y procesando OCR con Gemini API...';
+      msg.innerText = 'Analizando matriz con gemini-3.6-flash...';
 
       let base64Data = '';
       if (file.type.startsWith('image/')) {
@@ -720,7 +719,7 @@
       }
 
       const mimeType = file.type || 'image/jpeg';
-      const promptText = `Extrae la matriz HTST en este JSON estricto sin explicaciones extra:
+      const promptText = `Extrae la matriz HTST en este JSON estricto sin texto adicional:
       [{
         "fecha_envio": "YYYY-MM-DD",
         "producto": "nombre",
@@ -738,45 +737,36 @@
       }]
       Reglas: Conserva exactos los números y signos como "<10", "10", "20", "OK", "/".`;
 
-      // Se usa el endpoint estable y veloz gemini-2.5-flash
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+      // Endpoint directo a gemini-3.6-flash con response_mime_type JSON
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${key}`;
 
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
-
         const response = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
           body: JSON.stringify({
             contents: [{
               parts: [
                 { text: promptText },
                 { inline_data: { mime_type: mimeType, data: base64Data } }
               ]
-            }]
+            }],
+            generationConfig: {
+              response_mime_type: "application/json"
+            }
           })
         });
 
-        clearTimeout(timeoutId);
         const resData = await response.json();
 
         if (resData.candidates && resData.candidates[0]?.content?.parts[0]?.text) {
-          let rawText = resData.candidates[0].content.parts[0].text;
-          
-          // Extracción por expresión regular
-          const jsonMatch = rawText.match(/\[\s*\{[\s\S]*\}\s*\]/);
-          if (jsonMatch) {
-            const registros = JSON.parse(jsonMatch[0]);
-            await enviarABaseDeDatos({ action: 'CREATE', data: registros });
-          } else {
-            throw new Error('No se detectó un formato JSON válido en la respuesta.');
-          }
+          const rawText = resData.candidates[0].content.parts[0].text;
+          const registros = JSON.parse(rawText);
+          await enviarABaseDeDatos({ action: 'CREATE', data: registros });
         } else if (resData.error) {
           throw new Error(resData.error.message);
         } else {
-          throw new Error('Respuesta vacía por parte del servidor Gemini.');
+          throw new Error('Respuesta sin contenido válido.');
         }
       } catch (e) {
         msg.className = 'mt-2 text-xs text-red-600 block';
