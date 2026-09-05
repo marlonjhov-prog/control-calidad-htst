@@ -279,7 +279,7 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // PROCESAMIENTO CON OPTIMIZACIÓN RÁPIDA DE TIEMPO DE RESPUESTA
+    // PROCESAMIENTO ESTABLE CON ENDPOINT OFICIAL DE PRODUCCIÓN
     async function procesarConIA(file) {
       const key = localStorage.getItem('HTST_GEMINI_KEY');
       if (!key) {
@@ -290,76 +290,63 @@
 
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
-      msg.innerText = 'Procesando lectura con IA...';
+      msg.innerText = 'Analizando documento con Inteligencia Artificial...';
 
-      const base64 = await toBase64(file);
-      const mimeType = file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
+      try {
+        const base64 = await toBase64(file);
+        const mimeType = file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
 
-      const promptText = `Analiza la MATRIZ DE RESULTADOS HTST y extrae las filas en JSON estricto:
-      [{
-        "fecha_envio": "YYYY-MM-DD",
-        "producto": "nombre",
-        "lote": "código",
-        "resultado_bromatologico": "OK",
-        "coliformes_totales": "<10",
-        "e_coli": "/",
-        "arb_mesofilos": "OK",
-        "s_aureus": "/",
-        "enterobacterias": "/",
-        "resiembra_eb": "/",
-        "mohos_levaduras": "/",
-        "responsable": "",
-        "observaciones": ""
-      }]
-      Reglas: √="OK", / o vacío="/". Retorna sólo el JSON sin markdown.`;
+        const promptText = `Analiza la imagen o PDF de la MATRIZ DE RESULTADOS HTST y extrae los datos en un arreglo JSON estricto con esta estructura por cada fila:
+        [{
+          "fecha_envio": "YYYY-MM-DD",
+          "producto": "nombre",
+          "lote": "código",
+          "resultado_bromatologico": "OK",
+          "coliformes_totales": "<10",
+          "e_coli": "/",
+          "arb_mesofilos": "OK",
+          "s_aureus": "/",
+          "enterobacterias": "/",
+          "resiembra_eb": "/",
+          "mohos_levaduras": "/",
+          "responsable": "",
+          "observaciones": ""
+        }]
+        Reglas: Si ves √ pon "OK". Si la casilla tiene / o está vacía, pon "/". Retorna únicamente el JSON limpio sin bloques de código markdown.`;
 
-      const modelo = 'gemini-3.6-flash';
-      let intentos = 0;
-      const maxIntentos = 3;
+        // ENDPOINT ESTÁNDAR
+        const modelo = 'gemini-1.5-flash';
 
-      while (intentos < maxIntentos) {
-        intentos++;
-        try {
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${key}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: promptText },
-                  { inline_data: { mime_type: mimeType, data: base64.split(',')[1] } }
-                ]
-              }]
-            })
-          });
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${key}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: promptText },
+                { inline_data: { mime_type: mimeType, data: base64.split(',')[1] } }
+              ]
+            }]
+          })
+        });
 
-          const resData = await response.json();
+        const resData = await response.json();
 
-          if (resData.candidates && resData.candidates[0].content.parts[0].text) {
-            let rawText = resData.candidates[0].content.parts[0].text;
-            rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-            const registros = JSON.parse(rawText);
+        if (resData.candidates && resData.candidates[0]?.content?.parts[0]?.text) {
+          let rawText = resData.candidates[0].content.parts[0].text;
+          rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+          const registros = JSON.parse(rawText);
 
-            // Muestra los datos de inmediato en la tabla
-            datosGlobales = [...registros, ...datosGlobales];
-            renderTabla(datosGlobales);
-
-            // Guarda en segundo plano en Google Sheets
-            enviarABaseDeDatos({ action: 'CREATE', data: registros });
-            return;
-          } else if (resData.error && intentos < maxIntentos) {
-            await new Promise(r => setTimeout(r, 300)); // Reintento casi instantáneo
-          } else if (resData.error) {
-            throw new Error(resData.error.message);
-          }
-        } catch (e) {
-          if (intentos >= maxIntentos) {
-            msg.className = 'mt-2 text-xs text-red-600 block';
-            msg.innerText = 'Error al procesar la imagen: ' + e.message;
-          } else {
-            await new Promise(r => setTimeout(r, 300));
-          }
+          await enviarABaseDeDatos({ action: 'CREATE', data: registros });
+        } else if (resData.error) {
+          throw new Error(resData.error.message || 'Error al comunicarse con la API de IA');
+        } else {
+          throw new Error('No se pudo extraer información clara del archivo enviado.');
         }
+
+      } catch (e) {
+        msg.className = 'mt-2 text-xs text-red-600 block';
+        msg.innerText = 'Error al procesar: ' + e.message;
       }
     }
 
