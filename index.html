@@ -23,12 +23,16 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <button onclick="abrirModalManual()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 border border-emerald-600">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+          Ingreso Manual
+        </button>
         <button onclick="cargarDatosBD()" title="Actualizar Datos" class="bg-blue-800 hover:bg-blue-700 text-blue-100 p-2 rounded-lg text-xs flex items-center gap-1 border border-blue-700">
           <i data-lucide="refresh-cw" class="w-4 h-4"></i>
         </button>
         <button onclick="toggleConfig()" class="bg-blue-800 hover:bg-blue-700 text-blue-100 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 border border-blue-700">
           <i data-lucide="key" class="w-3.5 h-3.5"></i>
-          Configurar API Key
+          API Key
         </button>
       </div>
     </div>
@@ -115,6 +119,65 @@
         </div>
       </div>
     </section>
+
+    <!-- Modal Registro Manual Directo -->
+    <div id="modalManual" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+      <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4 border border-slate-100">
+        <div class="flex justify-between items-center border-b pb-3">
+          <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+            <i data-lucide="edit-3" class="w-5 h-5 text-blue-600"></i>
+            Ingreso Directo de Ensayo Microbiológico
+          </h3>
+          <button onclick="cerrarModalManual()" class="text-slate-400 hover:text-slate-600 font-bold text-sm">✕</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">Fecha Envio:</label>
+            <input type="date" id="mFecha" class="w-full p-2 border rounded-lg bg-slate-50">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">Producto:</label>
+            <input type="text" id="mProducto" placeholder="Polvo Aliada 400g" class="w-full p-2 border rounded-lg bg-slate-50">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">Lote:</label>
+            <input type="text" id="mLote" placeholder="L6209LP" class="w-full p-2 border rounded-lg bg-slate-50 font-mono">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">Bromatológico:</label>
+            <input type="text" id="mBromatologico" value="OK" class="w-full p-2 border rounded-lg bg-slate-50">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">Coliformes Totales:</label>
+            <input type="text" id="mColiformes" value="<10" class="w-full p-2 border rounded-lg bg-slate-50">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">E. Coli:</label>
+            <input type="text" id="mEcoli" value="<10" class="w-full p-2 border rounded-lg bg-slate-50">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">ARB Mesófilos:</label>
+            <input type="text" id="mArb" value="OK" class="w-full p-2 border rounded-lg bg-slate-50">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">Enterobacterias:</label>
+            <input type="text" id="mEntero" value="<10" class="w-full p-2 border rounded-lg bg-slate-50">
+          </div>
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">Mohos y Levaduras:</label>
+            <input type="text" id="mMohos" value="<10" class="w-full p-2 border rounded-lg bg-slate-50">
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button onclick="cerrarModalManual()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg">Cancelar</button>
+          <button onclick="guardarRegistroManual()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm">
+            Guardar Registro
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Modal Formulario de Liberación -->
     <div id="modalLiberacion" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
@@ -261,6 +324,7 @@
       lucide.createIcons();
       cargarDatosBD();
       verificarKeyGuardada();
+      document.getElementById('mFecha').value = new Date().toISOString().substring(0, 10);
     });
 
     function toggleConfig() {
@@ -283,6 +347,33 @@
         document.getElementById('keyStatus').className = 'text-xs text-emerald-600 font-bold';
         document.getElementById('keyStatus').innerText = '✓ Clave activa cargada del almacenamiento local.';
       }
+    }
+
+    function abrirModalManual() {
+      document.getElementById('modalManual').classList.remove('hidden');
+    }
+
+    function cerrarModalManual() {
+      document.getElementById('modalManual').classList.add('hidden');
+    }
+
+    async function guardarRegistroManual() {
+      const nuevo = [{
+        fecha_envio: document.getElementById('mFecha').value,
+        producto: document.getElementById('mProducto').value || 'Sin Nombre',
+        lote: document.getElementById('mLote').value || 'LOTE00',
+        resultado_bromatologico: document.getElementById('mBromatologico').value || 'OK',
+        coliformes_totales: document.getElementById('mColiformes').value || '<10',
+        e_coli: document.getElementById('mEcoli').value || '<10',
+        arb_mesofilos: document.getElementById('mArb').value || 'OK',
+        enterobacterias: document.getElementById('mEntero').value || '<10',
+        mohos_levaduras: document.getElementById('mMohos').value || '<10',
+        resiembra_eb: '/',
+        dictamen: 'EVALUAR'
+      }];
+
+      cerrarModalManual();
+      await enviarABaseDeDatos({ action: 'CREATE', data: nuevo });
     }
 
     async function cargarDatosBD() {
@@ -678,7 +769,7 @@
           img.src = e.target.result;
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 1200;
+            const MAX_WIDTH = 1000;
             let width = img.width;
             let height = img.height;
 
@@ -691,7 +782,7 @@
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.85));
+            resolve(canvas.toDataURL('image/jpeg', 0.80));
           };
         };
       });
@@ -707,6 +798,7 @@
 
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
+      msg.innerText = 'Analizando matriz de resultados...';
 
       let base64Data = '';
       if (file.type.startsWith('image/')) {
@@ -717,7 +809,7 @@
         base64Data = raw.split(',')[1];
       }
 
-      const mimeType = file.type || 'image/jpeg';
+      const mimeType = file.type.startsWith('image/') ? 'image/jpeg' : file.type;
       const promptText = `Extrae la matriz HTST en este JSON estricto sin texto adicional:
       [{
         "fecha_envio": "YYYY-MM-DD",
@@ -736,54 +828,44 @@
       }]
       Reglas: Conserva exactos los números y signos como "<10", "10", "20", "OK", "/".`;
 
-      // Lista de modelos con fallback automático para evitar bloqueos de cuota
-      const modelos = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+      // Endpoint directo para el modelo estable gemini-2.5-flash
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
 
-      for (let i = 0; i < modelos.length; i++) {
-        const modeloActual = modelos[i];
-        msg.innerText = `Analizando matriz con ${modeloActual}...`;
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: promptText },
+                { inline_data: { mime_type: mimeType, data: base64Data } }
+              ]
+            }],
+            generationConfig: {
+              response_mime_type: "application/json"
+            }
+          })
+        });
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modeloActual}:generateContent?key=${key}`;
+        const resData = await response.json();
 
-        try {
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: promptText },
-                  { inline_data: { mime_type: mimeType, data: base64Data } }
-                ]
-              }],
-              generationConfig: {
-                response_mime_type: "application/json"
-              }
-            })
-          });
-
-          if (response.status === 429) {
-            msg.innerText = `Límite por minuto alcanzado. Esperando respaldo (${modeloActual})...`;
-            await new Promise(r => setTimeout(r, 3000));
-            continue;
-          }
-
-          const resData = await response.json();
-
-          if (resData.candidates && resData.candidates[0]?.content?.parts[0]?.text) {
-            const rawText = resData.candidates[0].content.parts[0].text;
-            const registros = JSON.parse(rawText);
-            await enviarABaseDeDatos({ action: 'CREATE', data: registros });
-            return;
-          } else if (resData.error) {
-            if (i === modelos.length - 1) throw new Error(resData.error.message);
-          }
-        } catch (e) {
-          if (i === modelos.length - 1) {
-            msg.className = 'mt-2 text-xs text-red-600 block';
-            msg.innerText = 'Error de procesamiento: ' + e.message;
-          }
+        if (response.status === 429) {
+          throw new Error("Límite de peticiones gratuitas alcanzado por este minuto. Espera un momento o usa el botón 'Ingreso Manual'.");
         }
+
+        if (resData.candidates && resData.candidates[0]?.content?.parts[0]?.text) {
+          const rawText = resData.candidates[0].content.parts[0].text;
+          const registros = JSON.parse(rawText);
+          await enviarABaseDeDatos({ action: 'CREATE', data: registros });
+        } else if (resData.error) {
+          throw new Error(resData.error.message);
+        } else {
+          throw new Error('Sin respuesta del servidor de análisis.');
+        }
+      } catch (e) {
+        msg.className = 'mt-2 text-xs text-red-600 block';
+        msg.innerText = 'Error: ' + e.message;
       }
     }
 
