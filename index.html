@@ -200,7 +200,7 @@
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs">
           <thead class="bg-slate-100 text-slate-600 uppercase font-semibold border-b">
-            <tr id="headerTabla">
+            <tr>
               <th class="p-2.5">Fecha</th>
               <th class="p-2.5">Producto</th>
               <th class="p-2.5">Lote</th>
@@ -275,6 +275,15 @@
       }
     }
 
+    // Regla estricta: Detecta si Enterobacterias requiere resiembra/cuarentena
+    function esDesviacionEnterobacterias(ebVal, resVal) {
+      if (!ebVal || ebVal === '/' || ebVal === '') return false;
+      // Si la resiembra ya está procesada y conforme (<10 u OK), ya no es desviación activa
+      if (resVal === '<10' || resVal === 'OK') return false;
+      // Cualquier presencia numérica o alerta en Enterobacterias marca la necesidad de resiembra
+      return true;
+    }
+
     function aplicarFiltros() {
       const prod = document.getElementById('filterProducto').value;
       const lote = document.getElementById('filterLote').value;
@@ -284,13 +293,15 @@
 
       if (estado === 'LIBERADOS') {
         filtrados = filtrados.filter(row => {
-          const res = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-          return res === '' || res === '/' || res === 'OK' || res === '<10' || res === '<1';
+          const ebVal = row.enterobacterias ? String(row.enterobacterias).trim() : '';
+          const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
+          return !esDesviacionEnterobacterias(ebVal, resVal);
         });
       } else if (estado === 'CUARENTENA') {
         filtrados = filtrados.filter(row => {
-          const res = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-          return res !== '' && res !== '/' && res !== 'OK' && res !== '<10' && res !== '<1';
+          const ebVal = row.enterobacterias ? String(row.enterobacterias).trim() : '';
+          const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
+          return esDesviacionEnterobacterias(ebVal, resVal);
         });
       }
 
@@ -305,9 +316,9 @@
 
       datos.forEach(row => {
         if (row.lote) lotesUnicos.add(row.lote);
-        const res = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-        const requiereResiembra = (row.enterobacterias && row.enterobacterias !== '/' && row.enterobacterias !== 'OK' && row.enterobacterias !== '<10' && row.enterobacterias !== '<1') || (res !== '' && res !== '/' && res !== 'OK' && res !== '<10' && res !== '<1');
-        if (requiereResiembra && res !== '<10' && res !== 'OK') cuarentenas++;
+        const ebVal = row.enterobacterias ? String(row.enterobacterias).trim() : '';
+        const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
+        if (esDesviacionEnterobacterias(ebVal, resVal)) cuarentenas++;
       });
 
       const porcentajeCumplimiento = total > 0 ? (((total - cuarentenas) / total) * 100).toFixed(1) : 0;
@@ -327,8 +338,9 @@
 
       datos.forEach(row => {
         const prod = row.producto || 'Desconocido';
-        const res = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
-        const enCuarentena = (row.enterobacterias && row.enterobacterias !== '/' && row.enterobacterias !== 'OK' && row.enterobacterias !== '<10' && row.enterobacterias !== '<1') && res !== '<10' && res !== 'OK';
+        const ebVal = row.enterobacterias ? String(row.enterobacterias).trim() : '';
+        const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
+        const enCuarentena = esDesviacionEnterobacterias(ebVal, resVal);
 
         if (!productosMap[prod]) productosMap[prod] = { aprobados: 0, cuarentena: 0 };
 
@@ -386,10 +398,13 @@
       const tbody = document.getElementById('tablaResultados');
       const thResiembra = document.getElementById('thResiembra');
       
-      // Muestra la columna RESIEMBRA EB solo si existe al menos un lote liberado por resiembra
-      const hayLotesLiberadosConResiembra = datos.some(d => d.resiembra_eb && (String(d.resiembra_eb).trim() === '<10' || String(d.resiembra_eb).trim() === 'OK'));
-      
-      if (hayLotesLiberadosConResiembra) {
+      // Regla: La columna RESIEMBRA EB solo se muestra si existe explícitamente algún lote con resiembra procesada (<10 u OK)
+      const hayResiembrasLiberadas = datos.some(d => {
+        const res = d.resiembra_eb ? String(d.resiembra_eb).trim() : '';
+        return res === '<10' || res === 'OK';
+      });
+
+      if (hayResiembrasLiberadas) {
         thResiembra.classList.remove('hidden');
       } else {
         thResiembra.classList.add('hidden');
@@ -403,12 +418,10 @@
       }
 
       tbody.innerHTML = datos.map(row => {
-        const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
         const ebVal = row.enterobacterias ? String(row.enterobacterias).trim() : '';
+        const resVal = row.resiembra_eb ? String(row.resiembra_eb).trim() : '';
         
-        // Detectar si requiere resiembra o esta en cuarentena
-        const requiereResiembra = (ebVal !== '/' && ebVal !== '' && ebVal !== 'OK' && ebVal !== '<10' && ebVal !== '<1') && (resVal !== '<10' && resVal !== 'OK');
-        const estaLiberado = resVal === '<10' || resVal === 'OK';
+        const requiereResiembra = esDesviacionEnterobacterias(ebVal, resVal);
 
         let textoDictamen = 'CONFORME_LIBERADO';
         let claseDictamen = 'bg-emerald-100 text-emerald-800 border-emerald-300';
@@ -427,11 +440,11 @@
             <td class="p-2.5">${row.coliformes_totales || '<10'}</td>
             <td class="p-2.5">${row.e_coli || '/'}</td>
             <td class="p-2.5">${row.arb_mesofilos || 'OK'}</td>
-            <td class="p-2.5 ${ebVal !== '/' && ebVal !== 'OK' ? 'font-bold text-amber-600' : ''}">${row.enterobacterias || '/'}</td>
-            ${hayLotesLiberadosConResiembra ? `<td class="p-2.5 font-bold text-emerald-600">${estaLiberado ? resVal : ''}</td>` : ''}
+            <td class="p-2.5 ${ebVal !== '/' && ebVal !== '' ? 'font-bold text-amber-600' : ''}">${row.enterobacterias || '/'}</td>
+            ${hayResiembrasLiberadas ? `<td class="p-2.5 font-bold text-emerald-600">${resVal === '<10' || resVal === 'OK' ? resVal : ''}</td>` : ''}
             <td class="p-2.5">${row.mohos_levaduras || '/'}</td>
             <td class="p-2.5">
-              <span onclick="abrirModalLiberacion('${row.id_registro}')" class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${claseDictamen}" title="${requiereResiembra ? 'Haz clic para procesar la resiembra y liberar' : ''}">
+              <span onclick="abrirModalLiberacion('${row.id_registro}')" class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${claseDictamen}" title="${requiereResiembra ? 'Haz clic para liberar este lote' : ''}">
                 ${textoDictamen}
               </span>
             </td>
@@ -452,9 +465,8 @@
 
       const ebVal = reg.enterobacterias ? String(reg.enterobacterias).trim() : '';
       const resVal = reg.resiembra_eb ? String(reg.resiembra_eb).trim() : '';
-      const requiereResiembra = (ebVal !== '/' && ebVal !== '' && ebVal !== 'OK' && ebVal !== '<10' && ebVal !== '<1') && (resVal !== '<10' && resVal !== 'OK');
-
-      if (!requiereResiembra) return; // Ya está liberado
+      
+      if (!esDesviacionEnterobacterias(ebVal, resVal)) return;
 
       registroSeleccionadoModal = reg;
       document.getElementById('modalProducto').innerText = reg.producto || '';
@@ -474,12 +486,10 @@
       const horas = parseInt(document.getElementById('selectHorasIncubacion').value, 10);
       const resultadoResiembra = document.getElementById('inputResultadoResiembra').value.trim() || '<10';
 
-      // Calcular nueva fecha (24h o 48h posteriores)
       let fechaBase = new Date(registroSeleccionadoModal.fecha_envio || new Date());
       fechaBase.setHours(fechaBase.getHours() + horas);
       const nuevaFechaStr = fechaBase.toISOString().substring(0, 10);
 
-      // Crear objeto actualizado
       const registroActualizado = {
         ...registroSeleccionadoModal,
         fecha_envio: nuevaFechaStr,
@@ -489,7 +499,7 @@
 
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
-      msg.innerText = 'Liberando lote y actualizando fecha FSSC 22000 en base de datos...';
+      msg.innerText = 'Liberando lote y actualizando fecha FSSC 22000...';
 
       cerrarModalLiberacion();
 
