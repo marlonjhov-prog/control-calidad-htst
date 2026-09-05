@@ -32,7 +32,7 @@
 
   <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- Panel de Configuración API Key (Guardado Local) -->
+    <!-- Panel de Configuración API Key -->
     <section id="panelConfig" class="hidden bg-amber-50 border border-amber-200 p-4 rounded-xl space-y-2">
       <div class="flex justify-between items-center">
         <h3 class="text-xs font-bold text-amber-900 flex items-center gap-2">
@@ -40,7 +40,7 @@
         </h3>
         <button onclick="toggleConfig()" class="text-amber-800 text-xs font-bold">✕</button>
       </div>
-      <p class="text-[11px] text-amber-800">Guarda la clave una sola vez. Se almacena localmente en este navegador sin exponerse en GitHub.</p>
+      <p class="text-[11px] text-amber-800">Guarda la clave una sola vez. Se almacena localmente en este navegador.</p>
       <div class="flex gap-2">
         <input type="password" id="geminiApiKey" placeholder="Pega tu API Key (AIzaSy...)" class="flex-1 text-xs p-2 rounded border border-amber-300 focus:outline-none bg-white">
         <button onclick="guardarApiKey()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-3 py-2 rounded font-bold">Guardar</button>
@@ -75,7 +75,7 @@
       </div>
     </section>
 
-    <!-- Tabla Principal de Resultados -->
+    <!-- Tabla Principal -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="px-5 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <h2 class="font-bold text-xs text-slate-700">Matriz de Resultados HTST</h2>
@@ -279,7 +279,7 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // PROCESAMIENTO MULTIMODAL ROBUSTO CON FALLBACK AUTOMÁTICO DE MODELOS
+    // PROCESAMIENTO CON ENDPOINT OFICIAL
     async function procesarConIA(file) {
       const key = localStorage.getItem('HTST_GEMINI_KEY');
       if (!key) {
@@ -313,53 +313,37 @@
       }]
       Reglas: Si ves √ pon "OK". Si la casilla tiene / o está vacía, pon "/". Retorna únicamente el JSON limpio sin bloques de código markdown.`;
 
-      // Lista ordenada de modelos estables a consultar
-      const candidatosModelos = [
-        'gemini-1.5-flash',
-        'gemini-1.5-pro',
-        'gemini-2.0-flash'
-      ];
+      // Modelo oficial activo
+      const modelo = 'gemini-2.5-flash';
 
-      let procesadoExitoso = false;
-      let ultimoError = '';
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${key}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: promptText },
+                { inline_data: { mime_type: mimeType, data: base64.split(',')[1] } }
+              ]
+            }]
+          })
+        });
 
-      for (const modelo of candidatosModelos) {
-        try {
-          msg.innerText = `Procesando con motor de IA (${modelo})...`;
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${key}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: promptText },
-                  { inline_data: { mime_type: mimeType, data: base64.split(',')[1] } }
-                ]
-              }]
-            })
-          });
+        const resData = await response.json();
 
-          const resData = await response.json();
+        if (resData.candidates && resData.candidates[0].content.parts[0].text) {
+          let rawText = resData.candidates[0].content.parts[0].text;
+          rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+          const registros = JSON.parse(rawText);
 
-          if (resData.candidates && resData.candidates[0].content.parts[0].text) {
-            let rawText = resData.candidates[0].content.parts[0].text;
-            rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-            const registros = JSON.parse(rawText);
-
-            await enviarABaseDeDatos({ action: 'CREATE', data: registros });
-            procesadoExitoso = true;
-            break; // Si tuvo éxito, sale del bucle de modelos
-          } else if (resData.error) {
-            ultimoError = resData.error.message || 'Error en respuesta de la API';
-          }
-        } catch (e) {
-          ultimoError = e.message;
+          await enviarABaseDeDatos({ action: 'CREATE', data: registros });
+        } else if (resData.error) {
+          throw new Error(resData.error.message || 'Error en la respuesta de la API');
         }
-      }
-
-      if (!procesadoExitoso) {
+      } catch (e) {
         msg.className = 'mt-2 text-xs text-red-600 block';
-        msg.innerText = 'No se pudo procesar la imagen: ' + ultimoError;
+        msg.innerText = 'Error al procesar la imagen: ' + e.message;
       }
     }
 
