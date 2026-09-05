@@ -137,8 +137,8 @@
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">Horas de Incubación Normativa:</label>
             <select id="selectHorasIncubacion" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 bg-white font-medium">
-              <option value="24">24 Horas (+1 Día)</option>
-              <option value="48">48 Horas (+2 Días)</option>
+              <option value="1">24 Horas (+1 Día)</option>
+              <option value="2">48 Horas (+2 Días)</option>
             </select>
           </div>
           <div>
@@ -218,7 +218,7 @@
       </div>
     </section>
 
-    <!-- Tabla Principal (Matriz Inicial - Columna RESIEMBRA EB Oculta) -->
+    <!-- Tabla Principal -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="px-5 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <h2 class="font-bold text-xs text-slate-700">Matriz de Resultados HTST</h2>
@@ -236,7 +236,6 @@
               <th class="p-2.5">E. Coli</th>
               <th class="p-2.5">ARB Mesóf.</th>
               <th class="p-2.5">Enterob.</th>
-              <!-- Columna Resiembra EB Oculta Físicamente en la Vista Inicial -->
               <th class="p-2.5 hidden">Resiembra EB</th>
               <th class="p-2.5">Mohos/Lev.</th>
               <th class="p-2.5">Dictamen</th>
@@ -495,15 +494,33 @@
       registroSeleccionadoModal = null;
     }
 
+    // Suma días calendario directamente sobre la cadena YYYY-MM-DD para evitar errores de UTC/Zona horaria
+    function sumarDiasFechaStr(fechaStr, dias) {
+      if (!fechaStr) return new Date().toISOString().substring(0, 10);
+      const partes = String(fechaStr).substring(0, 10).split('-');
+      if (partes.length !== 3) return fechaStr;
+
+      let anio = parseInt(partes[0], 10);
+      let mes = parseInt(partes[1], 10) - 1;
+      let dia = parseInt(partes[2], 10);
+
+      let d = new Date(anio, mes, dia);
+      d.setDate(d.getDate() + dias);
+
+      let yyyy = d.getFullYear();
+      let mm = String(d.getMonth() + 1).padStart(2, '0');
+      let dd = String(d.getDate()).padStart(2, '0');
+
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
     async function guardarLiberacionYGenerarReporte() {
       if (!registroSeleccionadoModal) return;
 
-      const horas = parseInt(document.getElementById('selectHorasIncubacion').value, 10);
+      const diasASumar = parseInt(document.getElementById('selectHorasIncubacion').value, 10); // 1 o 2 días
       const resultadoResiembra = document.getElementById('inputResultadoResiembra').value.trim() || '<10';
 
-      let fechaBase = new Date(registroSeleccionadoModal.fecha_envio || new Date());
-      fechaBase.setHours(fechaBase.getHours() + horas);
-      const nuevaFechaStr = fechaBase.toISOString().substring(0, 10);
+      const nuevaFechaStr = sumarDiasFechaStr(registroSeleccionadoModal.fecha_envio, diasASumar);
 
       const registroActualizado = {
         ...registroSeleccionadoModal,
@@ -516,11 +533,10 @@
 
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
-      msg.innerText = 'Liberando lote y actualizando fecha FSSC 22000...';
+      msg.innerText = 'Liberando lote y generando nueva fecha FSSC 22000...';
 
       await enviarABaseDeDatos({ action: 'CREATE', data: [registroActualizado] });
 
-      // Despliega el Reporte Consolidado Final con la Matriz Completa
       generarYMostrarReporteCompleto(registroActualizado);
     }
 
