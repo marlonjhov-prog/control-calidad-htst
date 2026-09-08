@@ -45,7 +45,7 @@
         </h3>
         <button onclick="toggleConfig()" class="text-amber-800 text-xs font-bold">✕</button>
       </div>
-      <p class="text-[11px] text-amber-800">Ingresa tu API Key de Google AI Studio para que la IA procese las imágenes correctamente.</p>
+      <p class="text-[11px] text-amber-800">Ingresa tu API Key para que la IA procese las imágenes correctamente.</p>
       <div class="flex gap-2">
         <input type="password" id="geminiApiKey" placeholder="Pega tu API Key aquí" class="flex-1 text-xs p-2 rounded border border-amber-300 focus:outline-none bg-white">
         <button onclick="guardarApiKey()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-3 py-2 rounded font-bold">Guardar</button>
@@ -435,7 +435,7 @@
       await enviarABaseDeDatos({ action: 'DELETE', id_registro: id });
     }
 
-    // IA ACTUALIZADA AL MODELO COMPATIBLE Y ESTABLE
+    // IA RESTAURADA CON LA VERSIÓN GEMINI-3.6-FLASH DEL CÓDIGO ORIGINAL
     async function procesarArchivo() {
       const input = document.getElementById('fileInput');
       if(!input.files.length) return alert('Selecciona una imagen.');
@@ -455,25 +455,40 @@
     async function procesarConIA(file, key) {
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
-      msg.innerText = 'IA analizando múltiples filas de la imagen...';
+      msg.innerText = 'Analizando matriz con gemini-3.6-flash...';
 
       try {
         const raw = await toBase64(file);
         const base64Data = raw.split(',')[1];
         
-        const promptText = `Eres un auditor de calidad. Lee la tabla de la imagen. 
-        CRÍTICO: La tabla tiene MÚLTIPLES FILAS (varios productos y lotes). 
-        Extrae TODAS las filas que veas en la tabla. Devuelve OBLIGATORIAMENTE un ARREGLO JSON donde cada fila es un objeto separado.
-        NO INVENTES NOMBRES. Usa los valores exactos escritos en las columnas de Producto y Lote de la imagen.
-        
-        Estructura de cada objeto:
-        {
-          "tipo_proceso": "HTST o UHT", "fecha_envio": "YYYY-MM-DD", "producto": "nombre exacto", "lote": "lote exacto", "resultado_bromatologico": "✓", "coliformes_totales": "✓ o <10", "e_coli": "/", "arb_mesofilos": "✓", "arb_termofilos": "/", "s_aureus": "/", "enterobacterias": "/", "resiembra_coliformes": "/", "resiembra_eb": "/", "mohos_levaduras": "/", "responsable": "RO", "observaciones": "", "dictamen_final": "PENDIENTE"
-        }
-        Devuelve SOLO el array JSON, sin formato markdown.`;
+        const promptText = `Extrae la matriz de resultados de la imagen y responde EXCLUSIVAMENTE con un arreglo JSON válido.
+        CRÍTICO: La tabla tiene MÚLTIPLES FILAS (varios productos y lotes). Extrae TODAS las filas que veas en la tabla.
+        ESTRUCTURA JSON REQUERIDA (Arreglo de objetos):
+        [{
+          "tipo_proceso": "HTST",
+          "fecha_envio": "YYYY-MM-DD",
+          "producto": "nombre exacto del producto",
+          "lote": "código de lote exacto",
+          "resultado_bromatologico": "✓",
+          "coliformes_totales": "<10",
+          "e_coli": "/",
+          "arb_mesofilos": "✓",
+          "s_aureus": "/",
+          "enterobacterias": "/",
+          "resiembra_eb": "/",
+          "mohos_levaduras": "/",
+          "responsable": "RO",
+          "observaciones": "",
+          "dictamen_final": "PENDIENTE"
+        }]
+        REGLAS ESTRICTAS:
+        1. NUNCA escribas la palabra "OK". Usa estrictamente el símbolo "✓" para marcas de visto o "cumple".
+        2. Si el casillero tiene una barra inclinada o está vacío, pon "/".
+        3. Conserva valores numéricos como "<10", "10", "20" tal como aparecen.
+        4. No uses bloques de formato markdown ni comillas adicionales, devuelve solo el JSON puro.`;
 
-        // URL optimizada al modelo general y estable v1 de Gemini Flash
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key.trim())}`;
+        // URL original exacta con la versión gemini-3.6-flash que utilizabas
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(key.trim())}`;
         
         const response = await fetch(url, {
           method: 'POST', 
@@ -491,7 +506,7 @@
 
         if(!response.ok) {
           const errJson = await response.json().catch(() => ({}));
-          throw new Error(errJson.error?.message || `Error HTTP ${response.status} (Verifica que tu API Key sea válida)`);
+          throw new Error(errJson.error?.message || `Error HTTP ${response.status}`);
         }
         
         const resData = await response.json();
