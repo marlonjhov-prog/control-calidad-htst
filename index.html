@@ -45,8 +45,9 @@
         </h3>
         <button onclick="toggleConfig()" class="text-amber-800 text-xs font-bold">✕</button>
       </div>
+      <p class="text-[11px] text-amber-800">Ingresa tu API Key de Google AI Studio para que la IA pueda leer las imágenes de forma correcta.</p>
       <div class="flex gap-2">
-        <input type="password" id="geminiApiKey" placeholder="Pega tu API Key de Google Studio" class="flex-1 text-xs p-2 rounded border border-amber-300 focus:outline-none bg-white">
+        <input type="password" id="geminiApiKey" placeholder="Pega tu API Key aquí" class="flex-1 text-xs p-2 rounded border border-amber-300 focus:outline-none bg-white">
         <button onclick="guardarApiKey()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-3 py-2 rounded font-bold">Guardar</button>
       </div>
       <div id="keyStatus" class="text-[11px]"></div>
@@ -234,7 +235,6 @@
 
   <!-- ================= LÓGICA JAVASCRIPT ================= -->
   <script>
-    // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT:
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKUoOy17vZnjqKjk8FnjsM7riy2IyGWOgjKWGBjE5UnJSFdZnLsZoiZi9GeZFQtDfOxQ/exec';
     
     let datosGlobales = [];
@@ -261,6 +261,8 @@
       if(key) {
         localStorage.setItem('HTST_GEMINI_KEY', key);
         document.getElementById('keyStatus').innerHTML = '<span class="text-emerald-600 font-bold">✓ Clave guardada correctamente.</span>';
+        document.getElementById('panelConfig').classList.add('hidden');
+        alert('✓ API Key guardada con éxito.');
       }
     }
 
@@ -433,20 +435,25 @@
       await enviarABaseDeDatos({ action: 'DELETE', id_registro: id });
     }
 
-    // IA CON LECTURA ESTRICTA DE MÚLTIPLES FILAS
+    // IA CON ACTUALIZACIÓN DE MODELO COMPATIBLE (gemini-1.5-flash)
     async function procesarArchivo() {
       const input = document.getElementById('fileInput');
       if(!input.files.length) return alert('Selecciona una imagen.');
-      procesarConIA(input.files[0]);
-    }
-
-    async function procesarConIA(file) {
+      
       let key = localStorage.getItem('HTST_GEMINI_KEY');
       const msg = document.getElementById('statusMessage');
-      if(!key) return alert('Configura tu API Key en el panel superior (botón "API Key").');
-      
-      key = encodeURIComponent(key.trim());
-      const modo = document.getElementById('selectModoCarga').value;
+      if(!key) {
+        msg.className = 'mt-2 text-xs text-rose-600 block';
+        msg.innerText = '⚠️ Falta configurar la API Key. Haz clic en el botón "API Key" arriba a la derecha.';
+        toggleConfig();
+        return;
+      }
+
+      procesarConIA(input.files[0], key);
+    }
+
+    async function procesarConIA(file, key) {
+      const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
       msg.innerText = 'IA analizando múltiples filas de la imagen...';
 
@@ -465,13 +472,27 @@
         }
         Devuelve SOLO el array JSON, sin formato markdown.`;
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        // URL robusta con el modelo oficial gemini-1.5-flash
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(key.trim())}`;
+        
         const response = await fetch(url, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: file.type, data: base64Data } }] }], generationConfig: { response_mime_type: "application/json" } })
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            contents: [{ 
+              parts: [
+                { text: promptText }, 
+                { inline_data: { mime_type: file.type || 'image/jpeg', data: base64Data } }
+              ] 
+            }], 
+            generationConfig: { response_mime_type: "application/json" } 
+          })
         });
 
-        if(!response.ok) throw new Error(`Error API Google Status: ${response.status}`);
+        if(!response.ok) {
+          const errJson = await response.json().catch(() => ({}));
+          throw new Error(errJson.error?.message || `Error HTTP ${response.status} (Verifica que tu API Key sea válida)`);
+        }
         
         const resData = await response.json();
         if(resData.error) throw new Error(resData.error.message);
@@ -482,6 +503,7 @@
         
         if(registros.length === 0) throw new Error("La IA no detectó filas legibles.");
 
+        const modo = document.getElementById('selectModoCarga').value;
         registros = registros.map(r => {
           if(modo === 'UHT' || String(r.tipo_proceso).toUpperCase() === 'UHT') {
             r.tipo_proceso = 'UHT'; r.coliformes_totales = '/'; r.e_coli = '/'; r.enterobacterias = '/';
@@ -492,7 +514,7 @@
         await enviarABaseDeDatos({ action: 'CREATE', data: registros });
       } catch(e) {
         msg.className = 'mt-2 text-xs text-rose-600 block';
-        msg.innerText = 'Error IA: ' + e.message;
+        msg.innerText = 'Error de IA: ' + e.message;
       }
     }
 
@@ -506,7 +528,7 @@
         msg.innerText = '✓ Guardado exitoso.';
         document.getElementById('fileInput').value = '';
         setTimeout(() => cargarDatosBD(), 1000);
-      } catch(err) { msg.innerText = 'Error al sincronizar.'; }
+      } catch(err) { msg.innerText = 'Error al sincronizar con la base de datos.'; }
     }
 
     const toBase64 = file => new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); });
