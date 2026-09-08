@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Calidad | HTST & UHT</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+
+  <!-- CABECERA -->
+  <header class="bg-blue-900 text-white shadow-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <i data-lucide="shield-check" class="w-7 h-7 text-emerald-400"></i>
+        <div>
+          <h1 class="text-lg font-bold leading-tight">App Calidad | HTST & UHT</h1>
+          <p class="text-[10px] text-blue-200">Sistema Multi-proceso de Liberación FSSC 22000</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="abrirModalManual()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 border border-emerald-600">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Ingreso Manual
+        </button>
+        <button onclick="cargarDatosBD()" title="Actualizar Datos" class="bg-blue-800 hover:bg-blue-700 text-blue-100 p-2 rounded-lg text-xs flex items-center gap-1 border border-blue-700">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+        <button onclick="toggleConfig()" class="bg-blue-800 hover:bg-blue-700 text-blue-100 px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 border border-blue-700">
+          <i data-lucide="key" class="w-3.5 h-3.5"></i> API Key
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- CONFIGURACIÓN API KEY -->
+    <section id="panelConfig" class="hidden bg-amber-50 border border-amber-200 p-4 rounded-xl space-y-2">
+      <div class="flex justify-between items-center">
+        <h3 class="text-xs font-bold text-amber-900 flex items-center gap-2">
+          <i data-lucide="lock" class="w-4 h-4 text-amber-700"></i> Clave de Gemini API
+        </h3>
+        <button onclick="toggleConfig()" class="text-amber-800 text-xs font-bold">✕</button>
+      </div>
+      <div class="flex gap-2">
+        <input type="password" id="geminiApiKey" placeholder="Pega tu API Key de Google Studio" class="flex-1 text-xs p-2 rounded border border-amber-300 focus:outline-none bg-white">
+        <button onclick="guardarApiKey()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-3 py-2 rounded font-bold">Guardar</button>
+      </div>
+      <div id="keyStatus" class="text-[11px]"></div>
+    </section>
+
+    <!-- KPIS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Muestras Analizadas</p>
+          <h3 id="kpiTotal" class="text-2xl font-black text-slate-800 mt-1">0</h3>
+        </div>
+        <div class="p-3 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="flask-conical" class="w-6 h-6"></i></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Tasa Liberación</p>
+          <h3 id="kpiAprobados" class="text-2xl font-black text-emerald-600 mt-1">0%</h3>
+        </div>
+        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg"><i data-lucide="check-circle-2" class="w-6 h-6"></i></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Cuarentena/Resiembra</p>
+          <h3 id="kpiResiembras" class="text-2xl font-black text-rose-600 mt-1">0</h3>
+        </div>
+        <div class="p-3 bg-rose-50 text-rose-600 rounded-lg"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Lotes</p>
+          <h3 id="kpiLotes" class="text-2xl font-black text-indigo-600 mt-1">0</h3>
+        </div>
+        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><i data-lucide="boxes" class="w-6 h-6"></i></div>
+      </div>
+    </section>
+
+    <!-- CARGA DE IMÁGENES -->
+    <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+      <div class="flex justify-between items-center mb-3">
+          <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
+            <i data-lucide="upload-cloud" class="w-4 h-4 text-blue-600"></i> Cargar Matriz (Detección por IA Múltiples Filas)
+          </h2>
+          <select id="selectModoCarga" class="text-xs border rounded p-1 bg-slate-50"><option value="AUTO">Automático</option><option value="HTST">Forzar HTST</option><option value="UHT">Forzar UHT</option></select>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.pdf,.xlsx,.csv" class="md:col-span-2 text-xs text-slate-500 border border-slate-300 rounded-lg p-2 bg-slate-50 cursor-pointer">
+        <button onclick="procesarArchivo()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 shadow-sm">
+          <i data-lucide="cpu" class="w-4 h-4"></i> Analizar con IA
+        </button>
+      </div>
+      <div id="statusMessage" class="mt-2 text-xs hidden font-bold"></div>
+    </section>
+
+    <!-- FILTROS -->
+    <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-5 gap-3">
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1">Proceso:</label>
+        <select id="filterProceso" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none bg-slate-50 font-bold text-blue-900"><option value="TODOS">HTST & UHT</option><option value="HTST">Solo HTST</option><option value="UHT">Solo UHT</option></select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1">Filtrar por Fecha:</label>
+        <input type="date" id="filterFecha" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none bg-slate-50">
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1">Filtrar por Producto:</label>
+        <select id="filterProducto" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none bg-slate-50"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1">Filtrar por Lote:</label>
+        <select id="filterLote" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none bg-slate-50"></select>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-500 mb-1">Estado de Liberación:</label>
+        <select id="filterEstado" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none bg-slate-50">
+          <option value="TODOS">Todos los registros</option>
+          <option value="LIBERADOS">Solo Liberados (Conformes)</option>
+          <option value="CUARENTENA">En Cuarentena / Pendiente</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- TABLA DE RESULTADOS -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="px-5 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+        <h2 class="font-bold text-xs text-slate-700">Matriz de Resultados</h2>
+        <span id="kpiCount" class="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">0 registros</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs min-w-[1000px]">
+          <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b">
+            <tr>
+              <th class="p-2.5">Proc.</th>
+              <th class="p-2.5">Fecha</th>
+              <th class="p-2.5">Producto</th>
+              <th class="p-2.5">Lote</th>
+              <th class="p-2.5">Bromat.</th>
+              <th class="p-2.5">Microbiología Central</th>
+              <th class="p-2.5">Microbiología Secund.</th>
+              <th class="p-2.5">Estado / Dictamen (Clic para Editar)</th>
+              <th class="p-2.5 text-center">Eliminar</th>
+            </tr>
+          </thead>
+          <tbody id="tablaResultados" class="divide-y divide-slate-100">
+            <tr><td colspan="9" class="text-center py-6 text-slate-400 font-bold">Cargando base de datos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="px-5 py-3 border-t border-slate-200 flex justify-between items-center bg-slate-50">
+        <span id="infoPaginacion" class="text-[11px] text-slate-500 font-medium">Mostrando 0 al 0 de 0</span>
+        <div class="flex gap-2">
+          <button id="btnAnt" onclick="cambiarPagina(-1)" class="px-3 py-1.5 border rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-200 disabled:opacity-50">Anterior</button>
+          <button id="btnSig" onclick="cambiarPagina(1)" class="px-3 py-1.5 border rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-200 disabled:opacity-50">Siguiente</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODALES ================= -->
+  
+  <!-- MODAL MANUAL -->
+  <div id="modalManual" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4 border border-slate-100">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2"><i data-lucide="edit-3" class="w-5 h-5 text-blue-600"></i> Ingreso Directo</h3>
+        <button onclick="document.getElementById('modalManual').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+      </div>
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div><label class="block font-medium mb-1 text-blue-700">Proceso:</label><select id="mProceso" class="w-full p-2 border rounded-lg font-bold bg-blue-50"><option value="HTST">HTST</option><option value="UHT">UHT</option></select></div>
+        <div><label class="block font-medium mb-1">Fecha Envio:</label><input type="date" id="mFecha" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+        <div class="col-span-2"><label class="block font-medium mb-1">Producto:</label><input type="text" id="mProducto" placeholder="Ej: Crema de Leche" class="w-full p-2 border rounded-lg bg-slate-50"></div>
+        <div class="col-span-2"><label class="block font-medium mb-1">Lote:</label><input type="text" id="mLote" class="w-full p-2 border rounded-lg bg-slate-50 font-mono"></div>
+      </div>
+      <div class="pt-2 flex justify-end gap-2">
+        <button onclick="document.getElementById('modalManual').classList.add('hidden')" class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-lg">Cancelar</button>
+        <button onclick="guardarRegistroManual()" class="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg shadow-sm">Guardar Registro</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PENDIENTES -->
+  <div id="modalPendientes" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-sm text-amber-600 flex items-center gap-2"><i data-lucide="clock" class="w-5 h-5"></i> Actualizar Resultados Pendientes</h3>
+        <button onclick="document.getElementById('modalPendientes').classList.add('hidden')" class="text-slate-400 font-bold">✕</button>
+      </div>
+      <div class="text-xs bg-slate-50 p-3 rounded-lg border">
+        <p><span class="font-semibold text-slate-500">Lote:</span> <span id="pendLote" class="font-bold text-blue-600 font-mono"></span> - <span id="pendProceso"></span></p>
+      </div>
+      <div class="grid grid-cols-2 gap-3 text-xs" id="contenedorCamposPendientes"></div>
+      <div class="pt-2 flex justify-end gap-2">
+        <button onclick="document.getElementById('modalPendientes').classList.add('hidden')" class="px-4 py-2 bg-slate-100 text-xs font-bold rounded-lg">Cancelar</button>
+        <button onclick="guardarResultadosPendientes()" class="px-4 py-2 bg-amber-500 text-white text-xs font-bold rounded-lg shadow-sm">Guardar y Evaluar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LIBERACIÓN -->
+  <div id="modalLiberacion" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-sm text-rose-600 flex items-center gap-2"><i data-lucide="alert-triangle" class="w-5 h-5"></i> Procesar Cuarentena / Resiembra</h3>
+        <button onclick="document.getElementById('modalLiberacion').classList.add('hidden')" class="text-slate-400 font-bold">✕</button>
+      </div>
+      <div class="text-xs bg-rose-50 p-3 rounded-lg border border-rose-100">
+        <p><span class="font-semibold text-rose-800">Lote:</span> <span id="libLote" class="font-bold font-mono"></span></p>
+      </div>
+      <div class="space-y-3">
+        <div><label class="block text-xs font-bold mb-1">Dictamen Final:</label>
+          <select id="libDictamen" class="w-full text-xs p-2 border rounded-lg bg-white font-bold text-emerald-600">
+            <option value="CONFORME LIBERADO">Aprobar (Conforme Liberado)</option>
+            <option value="RECHAZADO">Rechazar Permanentemente</option>
+          </select>
+        </div>
+        <div><label class="block text-xs font-medium mb-1">Resultado de Resiembra:</label><input type="text" id="libResiembra" value="<10" class="w-full text-xs p-2 border rounded-lg font-bold"></div>
+      </div>
+      <div class="pt-2 flex justify-end gap-2">
+        <button onclick="document.getElementById('modalLiberacion').classList.add('hidden')" class="px-4 py-2 bg-slate-100 text-xs font-bold rounded-lg">Cancelar</button>
+        <button onclick="guardarLiberacion()" class="px-4 py-2 bg-rose-600 text-white text-xs font-bold rounded-lg shadow-sm">Guardar Estado</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= LÓGICA JAVASCRIPT ================= -->
+  <script>
+    // PEGA AQUÍ TU URL DE GOOGLE APPS SCRIPT:
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKUoOy17vZnjqKjk8FnjsM7riy2IyGWOgjKWGBjE5UnJSFdZnLsZoiZi9GeZFQtDfOxQ/exec';
+    
+    let datosGlobales = [];
+    let datosFiltradosGlobales = [];
+    let paginaActual = 1;
+    const registrosPorPagina = 10;
+    let registroSeleccionadoModal = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      cargarDatosBD();
+      const savedKey = localStorage.getItem('HTST_GEMINI_KEY');
+      if(savedKey) {
+        document.getElementById('geminiApiKey').value = savedKey;
+        document.getElementById('keyStatus').innerHTML = '<span class="text-emerald-600 font-bold">✓ Clave guardada activa.</span>';
+      }
+      document.getElementById('mFecha').value = new Date().toISOString().substring(0, 10);
+    });
+
+    function toggleConfig() { document.getElementById('panelConfig').classList.toggle('hidden'); }
+    
+    function guardarApiKey() {
+      const key = document.getElementById('geminiApiKey').value.trim();
+      if(key) {
+        localStorage.setItem('HTST_GEMINI_KEY', key);
+        document.getElementById('keyStatus').innerHTML = '<span class="text-emerald-600 font-bold">✓ Clave guardada correctamente.</span>';
+      }
+    }
+
+    function abrirModalManual() { document.getElementById('modalManual').classList.remove('hidden'); }
+
+    async function guardarRegistroManual() {
+      const esUHT = document.getElementById('mProceso').value === 'UHT';
+      const nuevo = [{
+        tipo_proceso: esUHT ? 'UHT' : 'HTST',
+        fecha_envio: document.getElementById('mFecha').value,
+        producto: document.getElementById('mProducto').value || 'Producto Manual',
+        lote: document.getElementById('mLote').value || 'LOTE00',
+        resultado_bromatologico: '✓',
+        coliformes_totales: esUHT ? '/' : '<10',
+        e_coli: '/', resiembra_coliformes: '/',
+        arb_mesofilos: '✓',
+        arb_termofilos: esUHT ? '<10' : '/',
+        s_aureus: '/', enterobacterias: '/', resiembra_eb: '/', mohos_levaduras: '/',
+        responsable: 'RO', observaciones: '', dictamen_final: 'PENDIENTE'
+      }];
+      document.getElementById('modalManual').classList.add('hidden');
+      await enviarABaseDeDatos({ action: 'CREATE', data: nuevo });
+    }
+
+    async function cargarDatosBD() {
+      const tbody = document.getElementById('tablaResultados');
+      if(tbody) tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-blue-600 font-bold">Cargando datos desde Google Sheets...</td></tr>`;
+      try {
+        const res = await fetch(APPS_SCRIPT_URL);
+        const json = await res.json();
+        if(json.status === 'SUCCESS') {
+          datosGlobales = json.data.map((row, index) => ({ ...row, frontend_id: index }));
+          poblarFiltros(); aplicarFiltros();
+        }
+      } catch (err) { console.error("Error BD:", err); }
+    }
+
+    function esFueraDeNorma(v) {
+      if(!v) return false;
+      const val = String(v).trim().toUpperCase();
+      if(['PENDIENTE','/','','✓','OK'].includes(val) || val.startsWith('<')) return false;
+      return !isNaN(parseFloat(val.replace('>',''))) && parseFloat(val.replace('>','')) >= 10;
+    }
+    function esPendiente(v) { return String(v||'').trim().toUpperCase() === 'PENDIENTE'; }
+    function tieneResultadosPendientes(r) {
+      return r.tipo_proceso === 'UHT' ? (esPendiente(r.arb_mesofilos)||esPendiente(r.arb_termofilos)) : (esPendiente(r.coliformes_totales)||esPendiente(r.e_coli)||esPendiente(r.arb_mesofilos)||esPendiente(r.enterobacterias));
+    }
+    function esLoteEnCuarentena(r) {
+      if(['<10','✓','OK'].includes(String(r.resiembra_coliformes||'').trim()) || ['<10','✓','OK'].includes(String(r.resiembra_eb||'').trim())) return false;
+      return r.tipo_proceso === 'UHT' ? (esFueraDeNorma(r.arb_mesofilos)||esFueraDeNorma(r.arb_termofilos)) : (esFueraDeNorma(r.coliformes_totales)||esFueraDeNorma(r.e_coli)||esFueraDeNorma(r.arb_mesofilos)||esFueraDeNorma(r.enterobacterias));
+    }
+
+    function renderCeldaMicro(val, nombre) {
+      const v = val ? String(val).trim() : '/';
+      const color = esFueraDeNorma(v) ? 'bg-rose-100 text-rose-700' : (esPendiente(v) ? 'bg-amber-100 text-amber-700' : 'text-slate-600');
+      return `<span class="inline-block px-1.5 py-0.5 rounded font-bold text-[10px] ${color}" title="${nombre}">${v}</span>`;
+    }
+
+    function renderTabla(datos) {
+      const tbody = document.getElementById('tablaResultados');
+      if(!tbody) return;
+      if(!datos.length) { tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-400">No se encontraron registros.</td></tr>`; return; }
+
+      tbody.innerHTML = datos.map(row => {
+        const esUHT = row.tipo_proceso === 'UHT';
+        const cuarentena = esLoteEnCuarentena(row);
+        const pendiente = tieneResultadosPendientes(row);
+
+        let micro1 = esUHT ? `Termófilos: ${renderCeldaMicro(row.arb_termofilos,'Termófilos')}` : `Colif: ${renderCeldaMicro(row.coliformes_totales,'Coliformes')} | E.Coli: ${renderCeldaMicro(row.e_coli,'E.Coli')}`;
+        let micro2 = esUHT ? `Mesófilos: ${renderCeldaMicro(row.arb_mesofilos,'Mesófilos')}` : `Mesóf: ${renderCeldaMicro(row.arb_mesofilos,'Mesófilos')} | Entero: ${renderCeldaMicro(row.enterobacterias,'Enterobacterias')} | Mohos: ${renderCeldaMicro(row.mohos_levaduras,'Mohos')}`;
+
+        let textoBtn = (row.dictamen_final||'PENDIENTE').toUpperCase();
+        let claseBtn = 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200';
+        if(cuarentena || textoBtn.includes('RESIEMBRA')) { textoBtn = 'CUARENTENA / RESIEMBRA'; claseBtn = 'bg-rose-100 text-rose-800 border-rose-300 hover:bg-rose-200'; }
+        else if(pendiente || textoBtn.includes('PENDIENTE')) { textoBtn = 'PENDIENTE (CLIC PARA ACTUALIZAR)'; claseBtn = 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200'; }
+
+        return `
+          <tr class="hover:bg-slate-50 border-b">
+            <td class="p-2.5 font-bold ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td>
+            <td class="p-2.5 font-medium">${row.fecha_envio?String(row.fecha_envio).substring(0,10):''}</td>
+            <td class="p-2.5 font-semibold text-[11px] truncate max-w-[150px]">${row.producto}</td>
+            <td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td>
+            <td class="p-2.5">${row.resultado_bromatologico||'✓'}</td>
+            <td class="p-2.5 text-[10px]">${micro1}</td>
+            <td class="p-2.5 text-[10px]">${micro2}</td>
+            <td class="p-2.5">
+              <button onclick="gestionarDictamenClick(${row.frontend_id})" class="px-2 py-1 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseBtn}">
+                ${textoBtn}
+              </button>
+            </td>
+            <td class="p-2.5 text-center">
+              <button onclick="eliminarRegistro('${row.id_registro}')" class="text-rose-500 hover:bg-rose-100 p-1.5 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    function gestionarDictamenClick(id) {
+      const reg = datosGlobales.find(d => d.frontend_id === id);
+      if(!reg) return;
+      if(esLoteEnCuarentena(reg) || reg.dictamen_final.includes('CUARENTENA')) abrirModalLiberacion(reg);
+      else if(tieneResultadosPendientes(reg) || reg.dictamen_final.includes('PENDIENTE')) abrirModalPendientes(reg);
+      else alert('Este lote ya ha sido Liberado Conforme.');
+    }
+
+    function abrirModalPendientes(reg) {
+      registroSeleccionadoModal = reg;
+      document.getElementById('pendLote').innerText = reg.lote;
+      document.getElementById('pendProceso').innerText = reg.tipo_proceso;
+      const cont = document.getElementById('contenedorCamposPendientes');
+      cont.innerHTML = '';
+      
+      const esUHT = reg.tipo_proceso === 'UHT';
+      const campos = esUHT 
+        ? [{id:'arb_mesofilos', label:'Mesófilos'}, {id:'arb_termofilos', label:'Termófilos'}]
+        : [{id:'coliformes_totales', label:'Coliformes'}, {id:'e_coli', label:'E.Coli'}, {id:'arb_mesofilos', label:'Mesófilos'}, {id:'enterobacterias', label:'Enterobacterias'}];
+
+      campos.forEach(c => {
+        const val = reg[c.id] || '/';
+        const pend = esPendiente(val);
+        const inputVal = pend ? '✓' : val; 
+        const cls = pend ? 'border-amber-400 bg-amber-50 text-amber-800 font-bold' : 'border-slate-300 bg-slate-50 text-slate-500';
+        cont.innerHTML += `<div><label class="block font-medium mb-1">${c.label}:</label><input type="text" id="pend_${c.id}" value="${inputVal}" class="w-full p-2 border rounded-lg ${cls}"></div>`;
+      });
+      document.getElementById('modalPendientes').classList.remove('hidden');
+    }
+
+    async function guardarResultadosPendientes() {
+      if(!registroSeleccionadoModal) return;
+      const reg = registroSeleccionadoModal;
+      const esUHT = reg.tipo_proceso === 'UHT';
+      
+      if(esUHT) {
+        reg.arb_mesofilos = document.getElementById('pend_arb_mesofilos').value;
+        reg.arb_termofilos = document.getElementById('pend_arb_termofilos').value;
+      } else {
+        reg.coliformes_totales = document.getElementById('pend_coliformes_totales').value;
+        reg.e_coli = document.getElementById('pend_e_coli').value;
+        reg.arb_mesofilos = document.getElementById('pend_arb_mesofilos').value;
+        reg.enterobacterias = document.getElementById('pend_enterobacterias').value;
+      }
+      reg.dictamen_final = esLoteEnCuarentena(reg) ? 'EN CUARENTENA' : 'CONFORME LIBERADO';
+
+      document.getElementById('modalPendientes').classList.add('hidden');
+      await enviarABaseDeDatos({ action: 'UPDATE', data: [reg] });
+    }
+
+    function abrirModalLiberacion(reg) {
+      registroSeleccionadoModal = reg;
+      document.getElementById('libLote').innerText = reg.lote;
+      document.getElementById('modalLiberacion').classList.remove('hidden');
+    }
+
+    async function guardarLiberacion() {
+      if(!registroSeleccionadoModal) return;
+      const reg = registroSeleccionadoModal;
+      reg.dictamen_final = document.getElementById('libDictamen').value;
+      const resVal = document.getElementById('libResiembra').value || '<10';
+      if(reg.tipo_proceso === 'UHT') reg.arb_mesofilos = resVal;
+      else reg.resiembra_eb = resVal;
+
+      document.getElementById('modalLiberacion').classList.add('hidden');
+      await enviarABaseDeDatos({ action: 'UPDATE', data: [reg] });
+    }
+
+    async function eliminarRegistro(id) {
+      if(!confirm("¿Eliminar permanentemente?")) return;
+      await enviarABaseDeDatos({ action: 'DELETE', id_registro: id });
+    }
+
+    // IA CON LECTURA ESTRICTA DE MÚLTIPLES FILAS
+    async function procesarArchivo() {
+      const input = document.getElementById('fileInput');
+      if(!input.files.length) return alert('Selecciona una imagen.');
+      procesarConIA(input.files[0]);
+    }
+
+    async function procesarConIA(file) {
+      let key = localStorage.getItem('HTST_GEMINI_KEY');
+      const msg = document.getElementById('statusMessage');
+      if(!key) return alert('Configura tu API Key en el panel superior (botón "API Key").');
+      
+      key = encodeURIComponent(key.trim());
+      const modo = document.getElementById('selectModoCarga').value;
+      msg.className = 'mt-2 text-xs text-blue-600 block';
+      msg.innerText = 'IA analizando múltiples filas de la imagen...';
+
+      try {
+        const raw = await toBase64(file);
+        const base64Data = raw.split(',')[1];
+        
+        const promptText = `Eres un auditor de calidad. Lee la tabla de la imagen. 
+        CRÍTICO: La tabla tiene MÚLTIPLES FILAS (varios productos y lotes). 
+        Extrae TODAS las filas que veas en la tabla. Devuelve OBLIGATORIAMENTE un ARREGLO JSON donde cada fila es un objeto separado.
+        NO INVENTES NOMBRES. Usa los valores exactos escritos en las columnas de Producto y Lote de la imagen.
+        
+        Estructura de cada objeto:
+        {
+          "tipo_proceso": "HTST o UHT", "fecha_envio": "YYYY-MM-DD", "producto": "nombre exacto", "lote": "lote exacto", "resultado_bromatologico": "✓", "coliformes_totales": "✓ o <10", "e_coli": "/", "arb_mesofilos": "✓", "arb_termofilos": "/", "s_aureus": "/", "enterobacterias": "/", "resiembra_coliformes": "/", "resiembra_eb": "/", "mohos_levaduras": "/", "responsable": "RO", "observaciones": "", "dictamen_final": "PENDIENTE"
+        }
+        Devuelve SOLO el array JSON, sin formato markdown.`;
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        const response = await fetch(url, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: file.type, data: base64Data } }] }], generationConfig: { response_mime_type: "application/json" } })
+        });
+
+        if(!response.ok) throw new Error(`Error API Google Status: ${response.status}`);
+        
+        const resData = await response.json();
+        if(resData.error) throw new Error(resData.error.message);
+
+        let rawText = resData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
+        let registros = JSON.parse(rawText);
+        if(!Array.isArray(registros)) registros = [registros];
+        
+        if(registros.length === 0) throw new Error("La IA no detectó filas legibles.");
+
+        registros = registros.map(r => {
+          if(modo === 'UHT' || String(r.tipo_proceso).toUpperCase() === 'UHT') {
+            r.tipo_proceso = 'UHT'; r.coliformes_totales = '/'; r.e_coli = '/'; r.enterobacterias = '/';
+          } else { r.tipo_proceso = 'HTST'; r.arb_termofilos = '/'; }
+          return r;
+        });
+
+        await enviarABaseDeDatos({ action: 'CREATE', data: registros });
+      } catch(e) {
+        msg.className = 'mt-2 text-xs text-rose-600 block';
+        msg.innerText = 'Error IA: ' + e.message;
+      }
+    }
+
+    async function enviarABaseDeDatos(payload) {
+      const msg = document.getElementById('statusMessage');
+      msg.className = 'mt-2 text-xs text-blue-600 block font-bold';
+      msg.innerText = 'Sincronizando con Google Sheets...';
+      try {
+        await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        msg.className = 'mt-2 text-xs text-emerald-600 block font-bold';
+        msg.innerText = '✓ Guardado exitoso.';
+        document.getElementById('fileInput').value = '';
+        setTimeout(() => cargarDatosBD(), 1000);
+      } catch(err) { msg.innerText = 'Error al sincronizar.'; }
+    }
+
+    const toBase64 = file => new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); });
+    
+    function poblarFiltros() {
+      const p = [...new Set(datosGlobales.map(d=>d.producto).filter(Boolean))];
+      const l = [...new Set(datosGlobales.map(d=>d.lote).filter(Boolean))];
+      document.getElementById('filterProducto').innerHTML = '<option value="">Todos</option>' + p.map(x=>`<option value="${x}">${x}</option>`).join('');
+      document.getElementById('filterLote').innerHTML = '<option value="">Todos</option>' + l.map(x=>`<option value="${x}">${x}</option>`).join('');
+    }
+
+    function aplicarFiltros() {
+      const proc = document.getElementById('filterProceso').value;
+      const fec = document.getElementById('filterFecha').value;
+      const prod = document.getElementById('filterProducto').value;
+      const lote = document.getElementById('filterLote').value;
+      const est = document.getElementById('filterEstado').value;
+
+      datosFiltradosGlobales = datosGlobales.filter(r => {
+        const f = r.fecha_envio ? String(r.fecha_envio).split('T')[0] : '';
+        const mP = (proc === 'TODOS' || r.tipo_proceso === proc.replace('Solo ', ''));
+        const mE = (est === 'TODOS' || (est === 'LIBERADOS' ? (!esLoteEnCuarentena(r) && !tieneResultadosPendientes(r)) : esLoteEnCuarentena(r)||tieneResultadosPendientes(r)));
+        return mP && mE && (!fec || f === fec) && (!prod || r.producto === prod) && (!lote || r.lote === lote);
+      });
+      paginaActual = 1;
+      document.getElementById('kpiCount').innerText = `${datosFiltradosGlobales.length} registros`;
+      renderPagina(); actualizarDashboard(datosFiltradosGlobales);
+    }
+
+    function renderPagina() {
+      const ini = (paginaActual - 1) * registrosPorPagina;
+      renderTabla(datosFiltradosGlobales.slice(ini, ini + registrosPorPagina));
+      const tot = datosFiltradosGlobales.length;
+      document.getElementById('infoPaginacion').innerText = `Mostrando ${tot===0?0:ini+1} al ${Math.min(ini+registrosPorPagina, tot)} de ${tot}`;
+      document.getElementById('btnAnt').disabled = paginaActual === 1;
+      document.getElementById('btnSig').disabled = (ini + registrosPorPagina) >= tot;
+    }
+    function cambiarPagina(d) { paginaActual += d; renderPagina(); }
+    function actualizarDashboard(d) {
+      document.getElementById('kpiTotal').innerText = d.length;
+      let cuar = d.filter(x => esLoteEnCuarentena(x)||tieneResultadosPendientes(x)).length;
+      document.getElementById('kpiResiembras').innerText = cuar;
+      document.getElementById('kpiAprobados').innerText = d.length ? (((d.length - cuar)/d.length)*100).toFixed(1)+'%' : '0%';
+      document.getElementById('kpiLotes').innerText = new Set(d.map(x=>x.lote)).size;
+    }
+  </script>
+</body>
+</html>
