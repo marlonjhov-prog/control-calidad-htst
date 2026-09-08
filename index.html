@@ -98,7 +98,7 @@
       </div>
     </section>
 
-    <!-- TABLA DE RESULTADOS - COLUMNAS LIMPIAS -->
+    <!-- TABLA DE RESULTADOS -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="px-5 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <h2 class="font-bold text-xs text-slate-700">Matriz de Resultados Consolidada</h2>
@@ -113,13 +113,13 @@
               <th class="p-2.5">Producto</th>
               <th class="p-2.5">Lote</th>
               <th class="p-2.5 text-center">Brom.</th>
-              <th class="p-2.5 text-center bg-slate-200/50" title="Mesófilos">Mesóf.</th>
-              <th class="p-2.5 text-center bg-slate-200/50" title="UHT: Termófilos | HTST: Coliformes">Term.(u)<br>Colif.(h)</th>
-              <th class="p-2.5 text-center bg-slate-200/50" title="UHT: Lácticas | HTST: E. Coli">Láct.(u)<br>E.Coli(h)</th>
-              <th class="p-2.5 text-center bg-slate-200/50" title="HTST: S. Aureus">S.Aur.</th>
-              <th class="p-2.5 text-center bg-slate-200/50" title="HTST: Enterobacterias">Entero.</th>
-              <th class="p-2.5 text-center bg-slate-200/50" title="HTST: Mohos y Levaduras">Mohos</th>
-              <th class="p-2.5 text-center border-l bg-amber-50" title="Columna Responsable Aislada">Resp.</th>
+              <th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th>
+              <th class="p-2.5 text-center bg-slate-200/50">Term.(u)<br>Colif.(h)</th>
+              <th class="p-2.5 text-center bg-slate-200/50">Láct.(u)<br>E.Coli(h)</th>
+              <th class="p-2.5 text-center bg-slate-200/50">S.Aur.</th>
+              <th class="p-2.5 text-center bg-slate-200/50">Entero.</th>
+              <th class="p-2.5 text-center bg-slate-200/50">Mohos</th>
+              <th class="p-2.5 text-center border-l bg-amber-50">Resp.</th>
               <th class="p-2.5 text-center border-l text-emerald-700">F. Liberación</th>
               <th class="p-2.5 text-center">Dictamen (Clic)</th>
               <th class="p-2.5 text-center">🗑️</th>
@@ -141,9 +141,7 @@
 
   </main>
 
-  <!-- ================= MODALES DE GESTIÓN ================= -->
-  
-  <!-- MODAL DINÁMICO DE GESTIÓN Y CORRECCIÓN DE PARÁMETROS -->
+  <!-- MODAL GESTIÓN -->
   <div id="modalGestion" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-3">
@@ -154,14 +152,10 @@
         <p><span class="font-semibold text-slate-500">Producto:</span> <span id="gProd" class="font-bold text-slate-800"></span></p>
         <p><span class="font-semibold text-slate-500">Lote:</span> <span id="gLote" class="font-bold text-blue-600 font-mono"></span> | <span id="gProc" class="font-bold"></span></p>
       </div>
-      
       <div class="bg-white border rounded-lg p-4">
         <h4 class="text-[11px] font-bold text-slate-500 mb-3 uppercase tracking-wide">Resultados Microbiológicos (Modificables)</h4>
-        <div id="gCamposDinamicos" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-           <!-- Inputs Dinámicos -->
-        </div>
+        <div id="gCamposDinamicos" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs"></div>
       </div>
-
       <div class="grid grid-cols-2 gap-3 text-xs">
         <div>
           <label class="block font-bold text-slate-700 mb-1">Dictamen de Liberación:</label>
@@ -183,7 +177,6 @@
           <input type="text" id="gObs" class="w-full p-2 border rounded-lg" placeholder="Ej: 8:08">
         </div>
       </div>
-
       <div class="pt-3 flex justify-end gap-2 border-t mt-4">
         <button onclick="document.getElementById('modalGestion').classList.add('hidden')" class="px-4 py-2 bg-slate-100 text-xs font-bold text-slate-600 rounded-lg">Cancelar</button>
         <button onclick="guardarGestionModal()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm">Actualizar Matriz y Guardar</button>
@@ -191,7 +184,7 @@
     </div>
   </div>
 
-  <!-- MODAL MANUAL BASICO -->
+  <!-- MODAL MANUAL -->
   <div id="modalManual" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
@@ -211,14 +204,14 @@
     </div>
   </div>
 
-  <!-- ================= LÓGICA JAVASCRIPT ================= -->
+  <!-- SCRIPT CON TODAS LAS FUNCIONES BLINDADAS -->
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKUoOy17vZnjqKjk8FnjsM7riy2IyGWOgjKWGBjE5UnJSFdZnLsZoiZi9GeZFQtDfOxQ/exec';
     
     let datosGlobales = [];
     let datosFiltradosGlobales = [];
     let paginaActual = 1;
-    const registrosPorPagina = 12; // Mostramos 12 para aprovechar la cuadrícula ancha
+    const registrosPorPagina = 12;
     let regActual = null;
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -265,18 +258,21 @@
 
     async function cargarDatosBD() {
       const tbody = document.getElementById('tablaResultados');
-      if(tbody) tbody.innerHTML = `<tr><td colspan="15" class="text-center py-6 text-slate-400 font-bold">Descargando matriz desde Google Sheets...</td></tr>`;
+      if(tbody) tbody.innerHTML = `<tr><td colspan="15" class="text-center py-6 text-blue-600 font-bold">Descargando matriz desde Google Sheets...</td></tr>`;
       try {
         const res = await fetch(APPS_SCRIPT_URL);
         const json = await res.json();
         if(json.status === 'SUCCESS') {
           datosGlobales = (json.data || []).map((row, index) => ({ ...row, frontend_id: index }));
-          poblarFiltros(); aplicarFiltros();
+          poblarFiltros(); 
+          aplicarFiltros();
         }
-      } catch (err) { console.error("Error BD:", err); }
+      } catch (err) { 
+        console.error("Error BD:", err);
+        if(tbody) tbody.innerHTML = `<tr><td colspan="15" class="text-center py-6 text-rose-500 font-bold">Error al conectar con la base de datos.</td></tr>`;
+      }
     }
 
-    // Validación numérica estricta para identificar cuarentenas automáticas
     function esFueraDeNorma(v) {
       if(!v) return false;
       const val = String(v).trim().toUpperCase();
@@ -288,7 +284,7 @@
 
     function tieneResultadosPendientes(r) {
       const obs = String(r.observaciones||'');
-      if(/^\d{1,2}:\d{2}$/.test(obs.trim())) return true; // Si hay horas (8:08), está pendiente
+      if(/^\d{1,2}:\d{2}$/.test(obs.trim())) return true;
       return r.tipo_proceso === 'UHT' 
         ? (esPendiente(r.arb_mesofilos) || esPendiente(r.arb_termofilos) || esPendiente(r.acido_lacticas)) 
         : (esPendiente(r.coliformes_totales) || esPendiente(r.e_coli) || esPendiente(r.arb_mesofilos));
@@ -303,15 +299,12 @@
       }
     }
 
-    // Celda de matriz limpia (sin letras ni títulos repetidos)
     function renderCeldaMatriz(val) {
       const v = val ? String(val).trim() : '/';
       if(v === '-' || v === '' || v === '/') return '<span class="text-slate-300 font-medium">/</span>';
-      
       let colorClass = 'text-slate-700 font-bold';
       if(esFueraDeNorma(v)) colorClass = 'bg-rose-100 text-rose-700 px-2 py-0.5 rounded font-black shadow-sm';
       else if(esPendiente(v)) colorClass = 'text-amber-500 font-bold';
-      
       return `<span class="${colorClass}">${v}</span>`;
     }
 
@@ -325,7 +318,6 @@
         const cuarentena = esLoteEnCuarentena(row);
         const pendiente = tieneResultadosPendientes(row);
 
-        // Mapeo dinámico y limpio para cada celda de la matriz sin repetir etiquetas
         let cMeso = renderCeldaMatriz(row.arb_mesofilos);
         let cTermColif = renderCeldaMatriz(esUHT ? row.arb_termofilos : row.coliformes_totales);
         let cLactEcoli = renderCeldaMatriz(esUHT ? row.acido_lacticas : row.e_coli);
@@ -333,20 +325,17 @@
         let cEntero = renderCeldaMatriz(esUHT ? '-' : row.enterobacterias);
         let cMohos = renderCeldaMatriz(esUHT ? '-' : row.mohos_levaduras);
         
-        // Responsable en su columna exclusiva
         let cResp = (row.responsable && row.responsable !== '/') ? `<span class="font-black text-amber-700">${row.responsable}</span>` : '<span class="text-slate-300">/</span>';
-        
         let cObs = (row.observaciones && row.observaciones !== '/') ? `<br><span class="text-[9px] text-slate-400 italic font-normal block leading-tight truncate max-w-[120px]" title="${row.observaciones}">${row.observaciones}</span>` : '';
 
-        // Botón de Estado / Dictamen
         let dict = (row.dictamen_final || 'PENDIENTE').toUpperCase();
         let claseDict = 'bg-emerald-100 text-emerald-800 border-emerald-400 hover:bg-emerald-200';
         
         if(cuarentena) {
-          dict = '⚠️ CUARENTENA / RESIEMBRA';
+          dict = '⚠️ CUARENTENA';
           claseDict = 'bg-rose-100 text-rose-800 border-rose-400 hover:bg-rose-200';
         } else if(pendiente || dict.includes('PENDIENTE')) {
-          dict = '⏰ PENDIENTE / HORAS';
+          dict = '⏰ PENDIENTE';
           claseDict = 'bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-200';
         } else if(row.fecha_liberacion) {
           dict = `✓ LIBERADO`;
@@ -385,7 +374,6 @@
       lucide.createIcons();
     }
 
-    // ================= LÓGICA DEL MODAL DINÁMICO =================
     function abrirModalGestion(id) {
       regActual = datosGlobales.find(d => d.frontend_id === id);
       if(!regActual) return;
@@ -431,7 +419,6 @@
 
       document.getElementById('gResp').value = regActual.responsable || '';
       document.getElementById('gObs').value = regActual.observaciones || '';
-      
       document.getElementById('modalGestion').classList.remove('hidden');
     }
 
@@ -466,16 +453,15 @@
       await enviarABaseDeDatos({ action: 'DELETE', id_registro: id });
     }
 
-    // ================= PROCESADOR CON IA INTELIGENTE E INSTRUCCIONES ULTRA ESTRICTAS =================
     async function procesarArchivo() {
       const input = document.getElementById('fileInput');
       if(!input.files.length) return alert('Selecciona una imagen.');
-      
       let key = localStorage.getItem('HTST_GEMINI_KEY');
       const msg = document.getElementById('statusMessage');
       if(!key) {
         msg.className = 'mt-2 text-xs text-rose-600 block';
         msg.innerText = '⚠️ Configura tu API Key arriba a la derecha primero.';
+        toggleConfig();
         return;
       }
       procesarConIA(input.files[0], key);
@@ -484,23 +470,19 @@
     async function procesarConIA(file, key) {
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
-      msg.innerText = 'Analizando matriz y mapeando columnas exactas...';
+      msg.innerText = 'Analizando matriz con IA...';
 
       try {
         const raw = await toBase64(file);
         const base64Data = raw.split(',')[1];
         
-        // PROMPT ULTRA BLINDADO
         const promptText = `Eres un auditor experto FSSC 22000. Analiza la matriz.
         TIPO: Detecta si es "UHT" o "HTST".
-        
         REGLAS INFALIBLES PARA COLUMNAS:
-        1. Las columnas microbiológicas (Mesófilos, Termófilos, Ácido Lácticas, Coliformes, E.Coli, S.Aureus, Enterobacterias, Mohos) DEBEN CONTENER SOLAMENTE: un número puro, el símbolo "<10", o una barra "/". 
-        2. ¡CERO LETRAS en microbiología! Si ves "EO", "RO" u otras letras cruzadas en celdas de números, IGNÓRALAS en esa celda.
-        3. RESPONSABLE EXCLUSIVO: Las iniciales "EO", "RO", que suelen abarcar verticalmente varias filas al final, van SOLAMENTE en la propiedad "responsable". 
-        4. No pongas el nombre de la columna dentro del valor. 
+        1. Valores microbiológicos (Mesófilos, Termófilos, Ácido Lácticas, Coliformes, E.Coli, S.Aureus, Enterobacterias, Mohos) DEBEN CONTENER SOLAMENTE: un número puro, el símbolo "<10", o una barra "/". ¡CERO LETRAS!
+        2. Responsable: Las iniciales "EO", "RO" van SOLAMENTE en la propiedad "responsable".
         
-        ESTRUCTURA EXACTA JSON REQUERIDA (NO CAMBIES LAS LLAVES):
+        ESTRUCTURA EXACTA JSON REQUERIDA:
         [{
           "tipo_proceso": "HTST o UHT",
           "fecha_envio": "YYYY-MM-DD",
@@ -523,24 +505,94 @@
         DEVUELVE ÚNICA Y EXCLUSIVAMENTE EL ARREGLO JSON.`;
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(key.trim())}`;
-        
         const response = await fetch(url, {
           method: 'POST', 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            contents: [{ 
-              parts: [
-                { text: promptText }, 
-                { inline_data: { mime_type: file.type || 'image/jpeg', data: base64Data } }
-              ] 
-            }], 
+            contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: file.type || 'image/jpeg', data: base64Data } }] }], 
             generationConfig: { response_mime_type: "application/json" } 
           })
         });
 
         if(!response.ok) throw new Error(`Error HTTP ${response.status}`);
-        
         const resData = await response.json();
         if(resData.error) throw new Error(resData.error.message);
 
-        let rawText = resData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/
+        let rawText = resData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
+        let registros = JSON.parse(rawText);
+        if(!Array.isArray(registros)) registros = [registros];
+        
+        const modo = document.getElementById('selectModoCarga').value;
+        registros = registros.map(r => {
+          if(modo !== 'AUTO') r.tipo_proceso = modo;
+          ['arb_mesofilos', 'arb_termofilos', 'acido_lacticas', 'coliformes_totales', 'e_coli', 's_aureus', 'enterobacterias', 'mohos_levaduras'].forEach(col => {
+            if(r[col] && typeof r[col] === 'string') {
+              r[col] = r[col].replace(/[a-zA-Z:]/g, '').trim() || '/';
+            }
+          });
+          return r;
+        });
+
+        await enviarABaseDeDatos({ action: 'CREATE', data: registros });
+      } catch(e) {
+        msg.className = 'mt-2 text-xs text-rose-600 block';
+        msg.innerText = 'Error de lectura IA: ' + e.message;
+      }
+    }
+
+    async function enviarABaseDeDatos(payload) {
+      const msg = document.getElementById('statusMessage');
+      msg.className = 'mt-2 text-xs text-blue-600 block font-bold';
+      msg.innerText = 'Sincronizando datos con Google Sheets...';
+      try {
+        await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        msg.className = 'mt-2 text-xs text-emerald-600 block font-bold';
+        msg.innerText = '✓ Matriz guardada exitosamente.';
+        document.getElementById('fileInput').value = '';
+        setTimeout(() => cargarDatosBD(), 1200);
+      } catch(err) { msg.innerText = 'Error al enviar a la nube.'; }
+    }
+
+    const toBase64 = file => new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); });
+    
+    function poblarFiltros() {
+      const p = [...new Set(datosGlobales.map(d=>d.producto).filter(Boolean))];
+      const l = [...new Set(datosGlobales.map(d=>d.lote).filter(Boolean))];
+      document.getElementById('filterProducto').innerHTML = '<option value="">Todos</option>' + p.map(x=>`<option value="${x}">${x}</option>`).join('');
+      document.getElementById('filterLote').innerHTML = '<option value="">Todos</option>' + l.map(x=>`<option value="${x}">${x}</option>`).join('');
+    }
+
+    function aplicarFiltros() {
+      const proc = document.getElementById('filterProceso').value;
+      const fec = document.getElementById('filterFecha').value;
+      const prod = document.getElementById('filterProducto').value;
+      const lote = document.getElementById('filterLote').value;
+      const est = document.getElementById('filterEstado').value;
+
+      datosFiltradosGlobales = datosGlobales.filter(r => {
+        const f = r.fecha_envio ? String(r.fecha_envio).split('T')[0] : '';
+        const mP = (proc === 'TODOS' || r.tipo_proceso === proc);
+        const mE = (est === 'TODOS' || (est === 'LIBERADOS' ? (!esLoteEnCuarentena(r) && !tieneResultadosPendientes(r)) : esLoteEnCuarentena(r)||tieneResultadosPendientes(r)));
+        return mP && mE && (!fec || f === fec) && (!prod || r.producto === prod) && (!lote || r.lote === lote);
+      });
+      paginaActual = 1;
+      document.getElementById('kpiCount').innerText = `${datosFiltradosGlobales.length} registros`;
+      renderPagina(); 
+    }
+
+    function renderPagina() {
+      const ini = (paginaActual - 1) * registrosPorPagina;
+      renderTabla(datosFiltradosGlobales.slice(ini, ini + registrosPorPagina));
+      const tot = datosFiltradosGlobales.length;
+      document.getElementById('infoPaginacion').innerText = `Mostrando ${tot===0?0:ini+1} al ${Math.min(ini+registrosPorPagina, tot)} de ${tot}`;
+      document.getElementById('btnAnt').disabled = paginaActual === 1;
+      document.getElementById('btnSig').disabled = (ini + registrosPorPagina) >= tot;
+    }
+    
+    function cambiarPagina(d) { 
+      paginaActual += d; 
+      renderPagina(); 
+    }
+  </script>
+</body>
+</html>
