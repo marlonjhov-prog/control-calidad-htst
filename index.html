@@ -135,7 +135,6 @@
         <span id="kpiCount" class="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">0 registros</span>
       </div>
       <div class="overflow-x-auto">
-        <!-- SE AGREGÓ LA NUEVA COLUMNA Y SE AUMENTÓ EL ANCHO MÍNIMO -->
         <table class="w-full text-left text-xs min-w-[1200px]">
           <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b">
             <tr>
@@ -145,7 +144,7 @@
               <th class="p-2.5">Lote</th>
               <th class="p-2.5">Bromat.</th>
               <th class="p-2.5">Parámetros Microbiológicos</th>
-              <th class="p-2.5">Fecha Liberación</th> <!-- NUEVA COLUMNA VISIBLE -->
+              <th class="p-2.5">Fecha Liberación</th>
               <th class="p-2.5">Dictamen / Estado (Clic)</th>
               <th class="p-2.5 text-center">Borrar</th>
             </tr>
@@ -221,8 +220,8 @@
           <input type="date" id="gFechaLib" class="w-full p-2 border border-slate-300 rounded-lg bg-slate-50">
         </div>
         <div class="col-span-2">
-          <label class="block font-bold text-slate-700 mb-1">Observaciones Generales:</label>
-          <input type="text" id="gObs" class="w-full p-2 border rounded-lg" placeholder="Novedades, horas o comentarios...">
+          <label class="block font-bold text-slate-700 mb-1">Observaciones Generales (Aplica a Responsable/Horas):</label>
+          <input type="text" id="gObs" class="w-full p-2 border rounded-lg" placeholder="Ej: EO / Horas: 8:08">
         </div>
       </div>
 
@@ -298,7 +297,7 @@
       } catch (err) { console.error("Error BD:", err); }
     }
 
-    // Lógica para detectar valores fuera de norma (ej. 10, 20, 50, etc.)
+    // Validación numérica estricta
     function esFueraDeNorma(v) {
       if(!v) return false;
       const val = String(v).trim().toUpperCase();
@@ -311,9 +310,9 @@
 
     function tieneResultadosPendientes(r) {
       const obs = String(r.observaciones||'');
-      if(/^\d{1,2}:\d{2}$/.test(obs.trim())) return true; // Horas parciales
+      if(/^\d{1,2}:\d{2}$/.test(obs.trim())) return true; // Horas parciales detectadas
       return r.tipo_proceso === 'UHT' 
-        ? (esPendiente(r.arb_mesofilos) || esPendiente(r.arb_termofilos)) 
+        ? (esPendiente(r.arb_mesofilos) || esPendiente(r.arb_termofilos) || esPendiente(r.acido_lacticas)) 
         : (esPendiente(r.coliformes_totales) || esPendiente(r.e_coli) || esPendiente(r.arb_mesofilos));
     }
 
@@ -362,7 +361,6 @@
           dict = `✓ LIBERADO`;
         }
 
-        // TEXTO PARA LA NUEVA COLUMNA
         let txtFechaLib = row.fecha_liberacion ? String(row.fecha_liberacion).substring(0,10) : '<span class="text-slate-300">-</span>';
 
         return `
@@ -374,9 +372,9 @@
             <td class="p-2.5 text-center font-bold text-slate-500">${row.resultado_bromatologico||'✓'}</td>
             <td class="p-2.5 text-[10px] leading-relaxed space-y-1">
                 <div>${microResumen}</div>
+                ${row.responsable && row.responsable !== '/' ? `<div class="text-slate-500 font-bold">Resp: ${row.responsable}</div>`:''}
                 ${row.observaciones && row.observaciones !== '/' ? `<div class="text-slate-400 italic">Obs: ${row.observaciones}</div>`:''}
             </td>
-            <!-- AQUÍ SE AGREGA LA NUEVA COLUMNA AL RENDER -->
             <td class="p-2.5 text-center font-bold text-emerald-600 text-xs">${txtFechaLib}</td>
             <td class="p-2.5">
               <button onclick="abrirModalGestion(${row.frontend_id})" class="px-2.5 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict}">
@@ -401,9 +399,8 @@
       document.getElementById('gProc').innerText = regActual.tipo_proceso;
       
       const cont = document.getElementById('gCamposDinamicos');
-      cont.innerHTML = ''; // Limpiar campos previos
+      cont.innerHTML = ''; 
 
-      // INYECTAR INPUTS SEGÚN EL TIPO DE PROCESO
       if(regActual.tipo_proceso === 'UHT') {
         cont.innerHTML = `
           <div><label class="block mb-1 text-slate-500">Prod/Liberación:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico||'✓'}" class="w-full p-2 border rounded font-bold text-center"></div>
@@ -411,7 +408,7 @@
           <div><label class="block mb-1 text-slate-500">ARB Termófilos:</label><input type="text" id="gUHT_Termo" value="${regActual.arb_termofilos||'/'}" class="w-full p-2 border rounded font-bold text-center"></div>
           <div><label class="block mb-1 text-slate-500">Ácido Lácticas:</label><input type="text" id="gUHT_Lact" value="${regActual.acido_lacticas||'/'}" class="w-full p-2 border rounded font-bold text-center"></div>
         `;
-      } else { // HTST
+      } else { 
         cont.innerHTML = `
           <div><label class="block mb-1 text-slate-500">Producción:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico||'✓'}" class="w-full p-2 border rounded font-bold text-center"></div>
           <div><label class="block mb-1 text-slate-500">Coliformes:</label><input type="text" id="gHTST_Colif" value="${regActual.coliformes_totales||'/'}" class="w-full p-2 border rounded font-bold text-center"></div>
@@ -423,11 +420,9 @@
         `;
       }
 
-      // Resto de campos
       let esCuarentena = esLoteEnCuarentena(regActual);
       document.getElementById('gDictamen').value = esCuarentena ? 'EN CUARENTENA' : 'CONFORME LIBERADO';
       
-      // Estilo condicional del select dictamen
       const selectDict = document.getElementById('gDictamen');
       selectDict.className = esCuarentena 
         ? "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800" 
@@ -439,14 +434,17 @@
           : "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800";
       };
 
-      document.getElementById('gObs').value = regActual.observaciones || '';
+      // Si el responsable está mal colocado en observaciones por error previo, lo corregimos manual
+      let valObs = regActual.observaciones || '';
+      if(regActual.responsable && regActual.responsable !== '/') valObs = `Resp: ${regActual.responsable} | ` + valObs;
+      document.getElementById('gObs').value = valObs;
+      
       document.getElementById('modalGestion').classList.remove('hidden');
     }
 
     async function guardarGestionModal() {
       if(!regActual) return;
       
-      // Capturar los valores editados
       regActual.resultado_bromatologico = document.getElementById('gBromat').value;
       if(regActual.tipo_proceso === 'UHT') {
         regActual.arb_mesofilos = document.getElementById('gUHT_Meso').value;
@@ -474,7 +472,7 @@
       await enviarABaseDeDatos({ action: 'DELETE', id_registro: id });
     }
 
-    // ================= PROCESADOR CON IA INTELIGENTE E INSTRUCCIONES ESTRICTAS =================
+    // ================= PROCESADOR CON IA INTELIGENTE E INSTRUCCIONES ULTRA ESTRICTAS =================
     async function procesarArchivo() {
       const input = document.getElementById('fileInput');
       if(!input.files.length) return alert('Selecciona una imagen.');
@@ -498,38 +496,40 @@
         const raw = await toBase64(file);
         const base64Data = raw.split(',')[1];
         
-        // PROMPT REDISEÑADO CON REGLAS BLINDADAS PARA COLUMNAS
+        // PROMPT ULTRA BLINDADO PARA EVITAR LETRAS EN COLUMNAS DE NÚMEROS
         const promptText = `Eres un auditor experto de calidad FSSC 22000. Analiza esta matriz.
         DETECTA EL TIPO: Lee el título superior de la imagen ("UHT" o "HTST").
         
         REGLAS ESTRICTAS E INQUEBRANTABLES:
-        1. CRÍTICO: La columna "Responsable" (que suele decir EO, RO, etc.) NO ES UN DATO MICROBIOLÓGICO. JAMÁS pongas "EO" o "RO" en la columna de "Ácido Lácticas" ni en ninguna otra columna de resultados.
-        2. Para parámetros microbiológicos (Mesófilos, Termófilos, Ácido Lácticas, Coliformes, Mohos, etc) los ÚNICOS VALORES PERMITIDOS SON: "<10", "/", o un número (ej. "10", "20"). Si el casillero está vacío, pon "/".
-        3. Para UHT: Extrae estrictamente "ARB Mesófilos", "ARB Termófilos" y "Ácido Lácticas".
-        4. Para HTST: Extrae Coliformes, E. Coli, Mesófilos, S. Aureus, Enterobacterias, Mohos.
-        5. Extrae TODAS las filas de productos que veas en la tabla hacia un arreglo JSON.
+        1. VALORES MICROBIOLÓGICOS (Mesófilos, Termófilos, Ácido Lácticas, Coliformes, E.Coli, S.Aureus, Enterobacterias, Mohos): 
+           - SOLO PUEDEN CONTENER: "<10", la barra "/", o un número (ej. "10", "20").
+           - ¡PROHIBIDO LETRAS! Jamás extraigas "EO", "RO" ni ninguna letra en estas columnas. 
+           - Si la celda está vacía o tiene un guión/barra, devuelve EXACTAMENTE "/".
+           - NO incluyas el nombre del parámetro. Por ejemplo, NO pongas "Mesófilos: <10", escribe únicamente "<10".
+        2. RESPONSABLE: Las iniciales "EO", "RO", etc., que suelen estar combinadas en varias filas de la imagen, pertenecen ÚNICA Y EXCLUSIVAMENTE a la clave "responsable". ¡NUNCA las pongas en Ácido Lácticas ni en ninguna otra parte!
+        3. Extrae TODAS las filas de productos que veas en la tabla hacia un arreglo JSON.
         
-        ESTRUCTURA EXACTA JSON REQUERIDA:
+        ESTRUCTURA EXACTA JSON REQUERIDA (NO AGREGUES NOMBRES DE COLUMNAS A LOS VALORES):
         [{
           "tipo_proceso": "HTST o UHT",
           "fecha_envio": "YYYY-MM-DD",
-          "producto": "nombre",
-          "lote": "lote",
-          "resultado_bromatologico": "✓",
-          "coliformes_totales": "<10",
-          "e_coli": "/",
-          "arb_mesofilos": "<10",
-          "arb_termofilos": "/",
-          "acido_lacticas": "/",
-          "s_aureus": "/",
-          "enterobacterias": "/",
-          "mohos_levaduras": "/",
-          "responsable": "extrae aquí iniciales como EO o RO",
-          "observaciones": "horas o comentarios",
+          "producto": "nombre exacto",
+          "lote": "lote exacto",
+          "resultado_bromatologico": "✓ o /",
+          "coliformes_totales": "<10 o /",
+          "e_coli": "<10 o /",
+          "arb_mesofilos": "<10 o /",
+          "arb_termofilos": "<10 o /",
+          "acido_lacticas": "<10 o /",
+          "s_aureus": "<10 o /",
+          "enterobacterias": "<10 o /",
+          "mohos_levaduras": "<10 o /",
+          "responsable": "EO, RO, etc.",
+          "observaciones": "horas o /",
           "dictamen_final": "PENDIENTE",
           "fecha_liberacion": ""
         }]
-        DEVUELVE ÚNICA Y EXCLUSIVAMENTE EL ARREGLO JSON.`;
+        DEVUELVE ÚNICA Y EXCLUSIVAMENTE EL ARREGLO JSON. NADA MÁS.`;
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(key.trim())}`;
         
@@ -559,6 +559,12 @@
         const modo = document.getElementById('selectModoCarga').value;
         registros = registros.map(r => {
           if(modo !== 'AUTO') r.tipo_proceso = modo;
+          // Limpiar por si acaso la IA sigue terca con las etiquetas
+          ['arb_mesofilos', 'arb_termofilos', 'acido_lacticas', 'coliformes_totales', 'e_coli', 's_aureus', 'enterobacterias', 'mohos_levaduras'].forEach(col => {
+            if(r[col] && r[col].includes(':')) {
+              r[col] = r[col].split(':').pop().trim();
+            }
+          });
           return r;
         });
 
