@@ -107,7 +107,7 @@
         <select id="filterProceso" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none bg-slate-50 font-bold text-blue-900"><option value="TODOS">HTST & UHT</option><option value="HTST">Solo HTST</option><option value="UHT">Solo UHT</option></select>
       </div>
       <div>
-        <label class="block text-xs font-medium text-slate-500 mb-1">Fecha:</label>
+        <label class="block text-xs font-medium text-slate-500 mb-1">Fecha Envío:</label>
         <input type="date" id="filterFecha" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 focus:outline-none bg-slate-50">
       </div>
       <div>
@@ -135,21 +135,23 @@
         <span id="kpiCount" class="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">0 registros</span>
       </div>
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs min-w-[1100px]">
+        <!-- SE AGREGÓ LA NUEVA COLUMNA Y SE AUMENTÓ EL ANCHO MÍNIMO -->
+        <table class="w-full text-left text-xs min-w-[1200px]">
           <thead class="bg-slate-100 text-slate-600 uppercase font-bold border-b">
             <tr>
               <th class="p-2.5">Proc.</th>
-              <th class="p-2.5">Fecha</th>
+              <th class="p-2.5">Fecha Envío</th>
               <th class="p-2.5">Producto</th>
               <th class="p-2.5">Lote</th>
-              <th class="p-2.5">Bromat. / Prod.</th>
+              <th class="p-2.5">Bromat.</th>
               <th class="p-2.5">Parámetros Microbiológicos</th>
-              <th class="p-2.5">Dictamen / Estado (Clic para Gestionar)</th>
+              <th class="p-2.5">Fecha Liberación</th> <!-- NUEVA COLUMNA VISIBLE -->
+              <th class="p-2.5">Dictamen / Estado (Clic)</th>
               <th class="p-2.5 text-center">Borrar</th>
             </tr>
           </thead>
           <tbody id="tablaResultados" class="divide-y divide-slate-100">
-            <tr><td colspan="8" class="text-center py-6 text-slate-400 font-bold">Cargando base de datos...</td></tr>
+            <tr><td colspan="9" class="text-center py-6 text-slate-400 font-bold">Cargando base de datos...</td></tr>
           </tbody>
         </table>
       </div>
@@ -168,7 +170,6 @@
   
   <!-- MODAL INGRESO MANUAL -->
   <div id="modalManual" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-    <!-- Mismo modal manual básico -->
     <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4">
       <div class="flex justify-between items-center border-b pb-3">
         <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2"><i data-lucide="edit-3" class="w-5 h-5 text-blue-600"></i> Ingreso Directo</h3>
@@ -286,7 +287,7 @@
 
     async function cargarDatosBD() {
       const tbody = document.getElementById('tablaResultados');
-      if(tbody) tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-blue-600 font-bold">Descargando matriz desde Google Sheets...</td></tr>`;
+      if(tbody) tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-blue-600 font-bold">Descargando matriz desde Google Sheets...</td></tr>`;
       try {
         const res = await fetch(APPS_SCRIPT_URL);
         const json = await res.json();
@@ -334,7 +335,7 @@
     function renderTabla(datos) {
       const tbody = document.getElementById('tablaResultados');
       if(!tbody) return;
-      if(!datos.length) { tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">No se encontraron registros.</td></tr>`; return; }
+      if(!datos.length) { tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-slate-400">No se encontraron registros.</td></tr>`; return; }
 
       tbody.innerHTML = datos.map(row => {
         const esUHT = row.tipo_proceso === 'UHT';
@@ -358,8 +359,11 @@
           dict = '⏰ PENDIENTE / HORAS';
           claseDict = 'bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-200';
         } else if(row.fecha_liberacion) {
-          dict = `✓ LIBERADO (${row.fecha_liberacion})`;
+          dict = `✓ LIBERADO`;
         }
+
+        // TEXTO PARA LA NUEVA COLUMNA
+        let txtFechaLib = row.fecha_liberacion ? String(row.fecha_liberacion).substring(0,10) : '<span class="text-slate-300">-</span>';
 
         return `
           <tr class="hover:bg-slate-50 border-b">
@@ -372,6 +376,8 @@
                 <div>${microResumen}</div>
                 ${row.observaciones && row.observaciones !== '/' ? `<div class="text-slate-400 italic">Obs: ${row.observaciones}</div>`:''}
             </td>
+            <!-- AQUÍ SE AGREGA LA NUEVA COLUMNA AL RENDER -->
+            <td class="p-2.5 text-center font-bold text-emerald-600 text-xs">${txtFechaLib}</td>
             <td class="p-2.5">
               <button onclick="abrirModalGestion(${row.frontend_id})" class="px-2.5 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict}">
                 ${dict} ✏️
