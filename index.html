@@ -45,7 +45,7 @@
         </h3>
         <button onclick="toggleConfig()" class="text-amber-800 text-xs font-bold">✕</button>
       </div>
-      <p class="text-[11px] text-amber-800">Ingresa tu API Key de Google AI Studio para que la IA pueda leer las imágenes de forma correcta.</p>
+      <p class="text-[11px] text-amber-800">Ingresa tu API Key de Google AI Studio para que la IA procese las imágenes correctamente.</p>
       <div class="flex gap-2">
         <input type="password" id="geminiApiKey" placeholder="Pega tu API Key aquí" class="flex-1 text-xs p-2 rounded border border-amber-300 focus:outline-none bg-white">
         <button onclick="guardarApiKey()" class="bg-amber-600 hover:bg-amber-700 text-white text-xs px-3 py-2 rounded font-bold">Guardar</button>
@@ -435,7 +435,7 @@
       await enviarABaseDeDatos({ action: 'DELETE', id_registro: id });
     }
 
-    // IA CON ACTUALIZACIÓN DE MODELO COMPATIBLE (gemini-1.5-flash)
+    // IA ACTUALIZADA AL MODELO COMPATIBLE Y ESTABLE
     async function procesarArchivo() {
       const input = document.getElementById('fileInput');
       if(!input.files.length) return alert('Selecciona una imagen.');
@@ -472,8 +472,8 @@
         }
         Devuelve SOLO el array JSON, sin formato markdown.`;
 
-        // URL robusta con el modelo oficial gemini-1.5-flash
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(key.trim())}`;
+        // URL optimizada al modelo general y estable v1 de Gemini Flash
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(key.trim())}`;
         
         const response = await fetch(url, {
           method: 'POST', 
