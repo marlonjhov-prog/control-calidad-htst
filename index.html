@@ -131,7 +131,7 @@
       </div>
     </section>
 
-    <!-- TABLA DE RESULTADOS DINÁMICA -->
+    <!-- TABLA DE RESULTADOS -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div class="px-5 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
         <h2 id="tituloTablaMatriz" class="font-bold text-xs text-slate-700">Matriz de Resultados Consolidada</h2>
@@ -139,9 +139,7 @@
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-left text-[11px] min-w-[1200px]">
-          <thead id="tablaCabecera" class="bg-slate-100 text-slate-500 uppercase font-bold border-b text-[10px]">
-            <!-- Generado dinámicamente -->
-          </thead>
+          <thead id="tablaCabecera" class="bg-slate-100 text-slate-500 uppercase font-bold border-b text-[10px]"></thead>
           <tbody id="tablaResultados" class="divide-y divide-slate-100">
             <tr><td colspan="15" class="text-center py-6 text-slate-400 font-bold">Cargando base de datos...</td></tr>
           </tbody>
@@ -158,29 +156,21 @@
 
   </main>
 
-  <!-- MODAL GESTIÓN INTERACTIVO CON VISTA PREVIA EN VIVO -->
+  <!-- MODAL GESTIÓN -->
   <div id="modalGestion" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl p-5 max-w-4xl w-full shadow-2xl space-y-3 max-h-[95vh] overflow-y-auto">
-      
-      <!-- Cabecera Modal -->
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5 text-blue-600"></i> Corregir Parámetros y Liberar Lote</h3>
         <button onclick="document.getElementById('modalGestion').classList.add('hidden')" class="text-slate-400 font-bold text-lg hover:text-rose-600">✕</button>
       </div>
-
-      <!-- Info Producto -->
       <div class="text-[11px] bg-slate-50 p-2 rounded-lg border flex gap-6">
         <p><span class="font-semibold text-slate-500">Producto:</span> <span id="gProd" class="font-bold text-slate-800"></span></p>
         <p><span class="font-semibold text-slate-500">Lote:</span> <span id="gLote" class="font-bold text-blue-600 font-mono"></span> | <span id="gProc" class="font-bold"></span></p>
       </div>
-
-      <!-- Sección de Inputs Dinámicos -->
       <div class="bg-white border border-slate-200 rounded-lg p-3">
         <h4 class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Resultados Microbiológicos (Modificables)</h4>
         <div id="gCamposDinamicos" class="grid grid-cols-3 md:grid-cols-4 gap-2 text-[11px]"></div>
       </div>
-
-      <!-- Dictamen y Datos Finales -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-[11px]">
         <div class="md:col-span-2">
           <label class="block font-bold text-slate-700 mb-1">Dictamen de Liberación (Automático):</label>
@@ -199,14 +189,10 @@
           <input type="text" id="gObs" class="w-full p-2 border rounded-lg" placeholder="Ej: 8:08">
         </div>
       </div>
-
-      <!-- VISTA PREVIA MATRIZ EN VIVO -->
       <div class="bg-blue-50/50 border border-blue-200 rounded-lg p-3 mt-2">
         <h4 class="text-[10px] font-bold text-blue-800 mb-2 uppercase tracking-wide flex items-center gap-1">👁️ Vista Previa de la Matriz Final</h4>
         <div id="previewMatrizModal" class="overflow-x-auto bg-white rounded shadow-sm border border-slate-200"></div>
       </div>
-
-      <!-- Botones Acción -->
       <div class="pt-2 flex justify-end gap-2 mt-2">
         <button onclick="document.getElementById('modalGestion').classList.add('hidden')" class="px-4 py-2 bg-slate-100 text-xs font-bold text-slate-600 rounded-lg">Cancelar</button>
         <button onclick="guardarGestionModal()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-2">
@@ -304,7 +290,6 @@
       }
     }
 
-    // ================= REGLAS DE EVALUACIÓN =================
     function esFueraDeNorma(v) {
       if(!v) return false;
       const val = String(v).trim().toUpperCase();
@@ -353,7 +338,6 @@
       return `<span class="${colorClass}">${v}</span>`;
     }
 
-    // ================= ACTUALIZACIÓN DE KPIS / DASHBOARD =================
     function actualizarKPIs(listaDatos) {
       const total = listaDatos.length;
       let liberados = 0;
@@ -361,13 +345,9 @@
       let cuarentena = 0;
 
       listaDatos.forEach(r => {
-        if (esLoteEnCuarentena(r)) {
-          cuarentena++;
-        } else if (tieneResultadosPendientes(r)) {
-          pendientes++;
-        } else {
-          liberados++;
-        }
+        if (esLoteEnCuarentena(r)) cuarentena++;
+        else if (tieneResultadosPendientes(r)) pendientes++;
+        else liberados++;
       });
 
       document.getElementById('kpiTotal').innerText = total;
@@ -376,7 +356,6 @@
       document.getElementById('kpiCuarentena').innerText = cuarentena;
     }
 
-    // ================= RENDERIZADO DE TABLA =================
     function renderTabla(datos) {
       const filtroProc = document.getElementById('filterProceso').value;
       const thead = document.getElementById('tablaCabecera');
@@ -435,7 +414,6 @@
       lucide.createIcons();
     }
 
-    // ================= MODAL Y VISTA PREVIA EN VIVO =================
     function evaluarEnVivoModal() {
       const esUHT = regActual.tipo_proceso === 'UHT';
       let objSimulado = { ...regActual };
@@ -638,10 +616,12 @@
       procesarConIA(input.files[0], key);
     }
 
-    async function procesarConIA(file, key) {
+    // ================= MOTOR IA CON MODELO ACTUALIZADO Y REINTENTOS =================
+    async function procesarConIA(file, key, intento = 1) {
       const msg = document.getElementById('statusMessage');
-      msg.className = 'mt-2 text-xs text-blue-600 block';
-      msg.innerText = 'Analizando matriz con IA...';
+      msg.className = 'mt-2 text-xs text-blue-600 block font-bold';
+      msg.innerText = intento > 1 ? `Servidor ocupado. Reintentando análisis (${intento}/3)...` : 'Analizando matriz con IA...';
+
       try {
         const raw = await toBase64(file);
         const base64Data = raw.split(',')[1];
@@ -673,16 +653,22 @@
         }]
         DEVUELVE ÚNICA Y EXCLUSIVAMENTE EL ARREGLO JSON.`;
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(key.trim())}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${encodeURIComponent(key.trim())}`;
         const response = await fetch(url, {
           method: 'POST', 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: file.type || 'image/jpeg', data: base64Data } }] }], generationConfig: { response_mime_type: "application/json" } })
         });
 
+        if(response.status === 503 && intento < 3) {
+          await new Promise(r => setTimeout(r, 2000));
+          return procesarConIA(file, key, intento + 1);
+        }
+
         if(!response.ok) throw new Error(`Error HTTP ${response.status}`);
         const resData = await response.json();
         if(resData.error) throw new Error(resData.error.message);
+        
         let rawText = resData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
         let registros = JSON.parse(rawText);
         if(!Array.isArray(registros)) registros = [registros];
@@ -691,6 +677,10 @@
         registros = registros.map(r => { if(modo !== 'AUTO') r.tipo_proceso = modo; return r; });
         await enviarABaseDeDatos({ action: 'CREATE', data: registros });
       } catch(e) {
+        if(e.message.includes('503') && intento < 3) {
+          await new Promise(r => setTimeout(r, 2000));
+          return procesarConIA(file, key, intento + 1);
+        }
         msg.className = 'mt-2 text-xs text-rose-600 block';
         msg.innerText = 'Error de lectura IA: ' + e.message;
       }
@@ -736,9 +726,7 @@
         return mP && cumpleEstado && (!fec || f === fec) && (!prod || r.producto === prod) && (!lote || r.lote === lote);
       });
 
-      // Actualizamos los KPIs basándonos en los datos filtrados actuales
       actualizarKPIs(datosFiltradosGlobales);
-
       paginaActual = 1;
       document.getElementById('kpiCount').innerText = `${datosFiltradosGlobales.length} registros`;
       renderPagina(); 
