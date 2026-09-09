@@ -51,35 +51,50 @@
       <div id="keyStatus" class="text-[11px]"></div>
     </section>
 
-    <!-- DASHBOARD DE KPIS EJECUTIVOS -->
-    <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+    <!-- DASHBOARD DE KPIS EJECUTIVOS Y EFICIENCIA -->
+    <section class="grid grid-cols-2 md:grid-cols-6 gap-3">
+      <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
         <div>
-          <p class="text-[10px] uppercase font-bold text-slate-400">Total Lotes</p>
-          <h3 id="kpiTotal" class="text-xl font-black text-slate-800">0</h3>
+          <p class="text-[9px] uppercase font-bold text-slate-400">Total Lotes</p>
+          <h3 id="kpiTotal" class="text-lg font-black text-slate-800">0</h3>
         </div>
-        <div class="bg-blue-50 p-3 rounded-lg text-blue-600"><i data-lucide="layers" class="w-5 h-5"></i></div>
+        <div class="bg-blue-50 p-2.5 rounded-lg text-blue-600"><i data-lucide="layers" class="w-4 h-4"></i></div>
       </div>
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+      <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
         <div>
-          <p class="text-[10px] uppercase font-bold text-emerald-600">Liberados</p>
-          <h3 id="kpiLiberados" class="text-xl font-black text-emerald-700">0</h3>
+          <p class="text-[9px] uppercase font-bold text-emerald-600">Liberados</p>
+          <h3 id="kpiLiberados" class="text-lg font-black text-emerald-700">0</h3>
         </div>
-        <div class="bg-emerald-50 p-3 rounded-lg text-emerald-600"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+        <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-600"><i data-lucide="check-circle-2" class="w-4 h-4"></i></div>
       </div>
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+      <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
         <div>
-          <p class="text-[10px] uppercase font-bold text-amber-600">Pendientes</p>
-          <h3 id="kpiPendientes" class="text-xl font-black text-amber-600">0</h3>
+          <p class="text-[9px] uppercase font-bold text-amber-600">Pendientes</p>
+          <h3 id="kpiPendientes" class="text-lg font-black text-amber-600">0</h3>
         </div>
-        <div class="bg-amber-50 p-3 rounded-lg text-amber-600"><i data-lucide="clock" class="w-5 h-5"></i></div>
+        <div class="bg-amber-50 p-2.5 rounded-lg text-amber-600"><i data-lucide="clock" class="w-4 h-4"></i></div>
       </div>
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+      <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
         <div>
-          <p class="text-[10px] uppercase font-bold text-rose-600">En Cuarentena</p>
-          <h3 id="kpiCuarentena" class="text-xl font-black text-rose-600">0</h3>
+          <p class="text-[9px] uppercase font-bold text-rose-600">En Cuarentena</p>
+          <h3 id="kpiCuarentena" class="text-lg font-black text-rose-600">0</h3>
         </div>
-        <div class="bg-rose-50 p-3 rounded-lg text-rose-600"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+        <div class="bg-rose-50 p-2.5 rounded-lg text-rose-600"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div>
+      </div>
+      <!-- NUEVOS KPIS DE EFICIENCIA -->
+      <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between bg-gradient-to-br from-emerald-50/40 to-white">
+        <div>
+          <p class="text-[9px] uppercase font-bold text-emerald-700">Conformidad Directa</p>
+          <h3 id="kpiConformidad" class="text-lg font-black text-emerald-800">100%</h3>
+        </div>
+        <div class="bg-emerald-100 p-2.5 rounded-lg text-emerald-700"><i data-lucide="award" class="w-4 h-4"></i></div>
+      </div>
+      <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between bg-gradient-to-br from-rose-50/40 to-white">
+        <div>
+          <p class="text-[9px] uppercase font-bold text-rose-700">Tasa Cuarentena</p>
+          <h3 id="kpiTasaCuarentena" class="text-lg font-black text-rose-800">0%</h3>
+        </div>
+        <div class="bg-rose-100 p-2.5 rounded-lg text-rose-700"><i data-lucide="activity" class="w-4 h-4"></i></div>
       </div>
     </section>
 
@@ -102,32 +117,46 @@
       <div id="statusMessage" class="mt-2 text-xs hidden font-bold"></div>
     </section>
 
-    <!-- FILTROS -->
-    <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-5 gap-3">
-      <div>
-        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Proceso:</label>
-        <select id="filterProceso" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50 font-bold text-blue-900"><option value="TODOS">HTST & UHT</option><option value="HTST">Solo HTST</option><option value="UHT">Solo UHT</option></select>
-      </div>
-      <div>
-        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Fecha Envío:</label>
-        <input type="date" id="filterFecha" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50">
-      </div>
-      <div>
-        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Producto:</label>
-        <select id="filterProducto" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50"></select>
-      </div>
-      <div>
-        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Lote:</label>
-        <select id="filterLote" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50"></select>
-      </div>
-      <div>
-        <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Estado:</label>
-        <select id="filterEstado" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50">
-          <option value="TODOS">Todos</option>
-          <option value="LIBERADOS">Solo Liberados</option>
-          <option value="PENDIENTES">Pendientes Resultados</option>
-          <option value="CUARENTENA">En Cuarentena</option>
-        </select>
+    <!-- FILTROS Y BUSCADOR INTELIGENTE -->
+    <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
+      <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Proceso:</label>
+          <select id="filterProceso" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50 font-bold text-blue-900"><option value="TODOS">HTST & UHT</option><option value="HTST">Solo HTST</option><option value="UHT">Solo UHT</option></select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Año:</label>
+          <select id="filterAnio" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50 font-bold text-slate-700"><option value="TODOS">Todos los Años</option></select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Mes:</label>
+          <select id="filterMes" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50 font-bold text-slate-700">
+            <option value="TODOS">Todos los Meses</option>
+            <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option><option value="04">Abril</option>
+            <option value="05">Mayo</option><option value="06">Junio</option><option value="07">Julio</option><option value="08">Agosto</option>
+            <option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Producto:</label>
+          <select id="filterProducto" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50"></select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Estado:</label>
+          <select id="filterEstado" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50">
+            <option value="TODOS">Todos</option>
+            <option value="LIBERADOS">Solo Liberados</option>
+            <option value="PENDIENTES">Pendientes Resultados</option>
+            <option value="CUARENTENA">En Cuarentena</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Búsqueda Rápida:</label>
+          <div class="relative">
+            <input type="text" id="busquedaTexto" oninput="aplicarFiltros()" placeholder="Buscar Lote o Producto..." class="w-full text-xs border border-slate-300 rounded-lg p-2 pl-7 bg-slate-50 font-medium">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5"></i>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -281,7 +310,7 @@
         const json = await res.json();
         if(json.status === 'SUCCESS') {
           datosGlobales = (json.data || []).map((row, index) => ({ ...row, frontend_id: index }));
-          poblarFiltros(); 
+          poblarFiltrosJerarquicos(); 
           aplicarFiltros();
         }
       } catch (err) { 
@@ -354,6 +383,13 @@
       document.getElementById('kpiLiberados').innerText = liberados;
       document.getElementById('kpiPendientes').innerText = pendientes;
       document.getElementById('kpiCuarentena').innerText = cuarentena;
+
+      // KPIs de Eficiencia y Calidad
+      const conformidad = total > 0 ? Math.round((liberados / total) * 100) : 100;
+      const tasaCuar = total > 0 ? ((cuarentena / total) * 100).toFixed(1) : 0;
+
+      document.getElementById('kpiConformidad').innerText = conformidad + '%';
+      document.getElementById('kpiTasaCuarentena').innerText = tasaCuar + '%';
     }
 
     function renderTabla(datos) {
@@ -653,7 +689,6 @@
         }]
         DEVUELVE ÚNICA Y EXCLUSIVAMENTE EL ARREGLO JSON.`;
 
-        // SELECCIÓN DE MODELO ACTUALIZADO Y ESTABLE gemini-3.5-flash-lite EVITANDO SATURACIONES 503
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(key.trim())}`;
         const response = await fetch(url, {
           method: 'POST', 
@@ -702,29 +737,51 @@
 
     const toBase64 = file => new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); });
     
-    function poblarFiltros() {
-      const p = [...new Set(datosGlobales.map(d=>d.producto).filter(Boolean))];
-      const l = [...new Set(datosGlobales.map(d=>d.lote).filter(Boolean))];
-      document.getElementById('filterProducto').innerHTML = '<option value="">Todos</option>' + p.map(x=>`<option value="${x}">${x}</option>`).join('');
-      document.getElementById('filterLote').innerHTML = '<option value="">Todos</option>' + l.map(x=>`<option value="${x}">${x}</option>`).join('');
+    function poblarFiltrosJerarquicos() {
+      // Poblar Productos
+      const productos = [...new Set(datosGlobales.map(d => d.producto).filter(Boolean))].sort();
+      document.getElementById('filterProducto').innerHTML = '<option value="">Todos los Productos</option>' + productos.map(x => `<option value="${x}">${x}</option>`).join('');
+
+      // Poblar Años dinámicos basados en la fecha de envío de los registros
+      const anios = [...new Set(datosGlobales.map(d => {
+        if(!d.fecha_envio) return null;
+        return String(d.fecha_envio).substring(0, 4);
+      }).filter(Boolean))].sort().reverse();
+
+      const selectAnio = document.getElementById('filterAnio');
+      selectAnio.innerHTML = '<option value="TODOS">Todos los Años</option>' + anios.map(a => `<option value="${a}">${a}</option>`).join('');
     }
 
     function aplicarFiltros() {
       const proc = document.getElementById('filterProceso').value;
-      const fec = document.getElementById('filterFecha').value;
+      const anio = document.getElementById('filterAnio').value;
+      const mes = document.getElementById('filterMes').value;
       const prod = document.getElementById('filterProducto').value;
-      const lote = document.getElementById('filterLote').value;
       const est = document.getElementById('filterEstado').value;
+      const textoBusqueda = document.getElementById('busquedaTexto').value.trim().toLowerCase();
 
       datosFiltradosGlobales = datosGlobales.filter(r => {
-        const f = r.fecha_envio ? String(r.fecha_envio).split('T')[0] : '';
-        const mP = (proc === 'TODOS' || r.tipo_proceso === proc);
+        const fechaStr = r.fecha_envio ? String(r.fecha_envio) : '';
+        const anioReg = fechaStr.substring(0, 4);
+        const mesReg = fechaStr.substring(5, 7);
+
+        const mProc = (proc === 'TODOS' || r.tipo_proceso === proc);
+        const mAnio = (anio === 'TODOS' || anioReg === anio);
+        const mMes = (mes === 'TODOS' || mesReg === mes);
+        const mProd = (!prod || r.producto === prod);
+
+        // Búsqueda libre en tiempo real por Lote o Producto
+        const loteVal = String(r.lote || '').toLowerCase();
+        const prodVal = String(r.producto || '').toLowerCase();
+        const mTexto = (!textoBusqueda || loteVal.includes(textoBusqueda) || prodVal.includes(textoBusqueda));
+
         let cumpleEstado = false;
         if(est === 'TODOS') cumpleEstado = true;
         else if(est === 'LIBERADOS') cumpleEstado = (!esLoteEnCuarentena(r) && !tieneResultadosPendientes(r));
         else if(est === 'PENDIENTES') cumpleEstado = (!esLoteEnCuarentena(r) && tieneResultadosPendientes(r));
         else if(est === 'CUARENTENA') cumpleEstado = esLoteEnCuarentena(r);
-        return mP && cumpleEstado && (!fec || f === fec) && (!prod || r.producto === prod) && (!lote || r.lote === lote);
+
+        return mProc && mAnio && mMes && mProd && mTexto && cumpleEstado;
       });
 
       actualizarKPIs(datosFiltradosGlobales);
