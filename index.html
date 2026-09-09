@@ -285,9 +285,10 @@
 
     async function guardarRegistroManual() {
       const esUHT = document.getElementById('mProceso').value === 'UHT';
+      const fechaEnvioHoy = document.getElementById('mFecha').value;
       const nuevo = [{
         tipo_proceso: esUHT ? 'UHT' : 'HTST',
-        fecha_envio: document.getElementById('mFecha').value,
+        fecha_envio: fechaEnvioHoy,
         producto: document.getElementById('mProducto').value || 'Producto Manual',
         lote: document.getElementById('mLote').value || 'LOTE00',
         resultado_bromatologico: '✓',
@@ -295,7 +296,7 @@
         e_coli: '/', resiembra_coliformes: '/',
         arb_mesofilos: '<10', arb_termofilos: esUHT ? '<10' : '/', acido_lacticas: esUHT ? '<10' : '/',
         s_aureus: '/', enterobacterias: '/', resiembra_eb: '/', mohos_levaduras: '/',
-        responsable: 'RO', observaciones: '/', dictamen_final: 'PENDIENTE', fecha_liberacion: ''
+        responsable: 'RO', observaciones: '/', dictamen_final: 'CONFORME LIBERADO', fecha_liberacion: fechaEnvioHoy
       }];
       document.getElementById('modalManual').classList.add('hidden');
       await enviarABaseDeDatos({ action: 'CREATE', data: nuevo });
@@ -433,8 +434,14 @@
         let cResp = (respFinal && respFinal !== '/') ? `<span class="font-black text-amber-700">${respFinal}</span>` : '<span class="text-slate-300">/</span>';
         let cObs = (row.observaciones && row.observaciones !== '/' && !String(row.observaciones).includes('1899-')) ? `<br><span class="text-[9px] text-slate-400 italic block truncate max-w-[120px]">${row.observaciones}</span>` : '';
 
-        // Muestra estrictamente la fecha de liberación guardada en la base de datos
+        // REGLA DE NEGOCIO F. LIB.: Si está liberado y no tiene fecha, hereda la fecha de envío. Si está pendiente o en cuarentena, se queda en blanco (-)
         let fLib = row.fecha_liberacion;
+        if (!cuarentena && !pendiente && (!fLib || fLib === '-' || fLib === '')) {
+          fLib = row.fecha_envio;
+        } else if ((cuarentena || pendiente) && (!fLib || fLib === '-')) {
+          fLib = '';
+        }
+
         let txtFechaLib = (fLib && fLib !== '-' && fLib !== '') ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
 
         if(filtroProc === 'UHT') {
@@ -472,24 +479,31 @@
       let pendiente = tieneResultadosPendientes(objSimulado);
       
       const selectDict = document.getElementById('gDictamen');
+      const inputFechaLib = document.getElementById('gFechaLib');
 
       let estadoVivo = '';
       if (cuarentena) {
           estadoVivo = 'EN CUARENTENA';
           selectDict.value = 'EN CUARENTENA';
           selectDict.className = "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800 transition-colors cursor-not-allowed pointer-events-none";
+          inputFechaLib.value = ''; // En cuarentena se limpia la fecha en el modal
       } else if (pendiente) {
           estadoVivo = 'PENDIENTE RESULTADOS';
           selectDict.value = 'PENDIENTE RESULTADOS';
           selectDict.className = "w-full p-2 border-2 border-amber-400 rounded-lg bg-amber-50 font-black text-amber-800 transition-colors cursor-not-allowed pointer-events-none";
+          inputFechaLib.value = ''; // En pendiente se limpia la fecha en el modal
       } else {
           estadoVivo = 'CONFORME LIBERADO';
           selectDict.value = 'CONFORME LIBERADO';
           selectDict.className = "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800 transition-colors cursor-not-allowed pointer-events-none";
+          // Si pasa a liberado y no tenía fecha asignada, adopta la fecha de envío automáticamente
+          if(!inputFechaLib.value) {
+            inputFechaLib.value = objSimulado.fecha_envio ? String(objSimulado.fecha_envio).substring(0, 10) : new Date().toISOString().substring(0, 10);
+          }
       }
 
       objSimulado.dictamen_final = estadoVivo;
-      objSimulado.fecha_liberacion = document.getElementById('gFechaLib').value;
+      objSimulado.fecha_liberacion = inputFechaLib.value;
 
       renderizarPreviewMatriz(objSimulado, estadoVivo);
     }
@@ -591,8 +605,12 @@
       document.getElementById('gResp').value = respVal || '';
       document.getElementById('gObs').value = obsFinal;
       
-      // Respetamos estrictamente la fecha de liberación almacenada en el registro sin pisarla con la fecha actual
-      document.getElementById('gFechaLib').value = regActual.fecha_liberacion ? String(regActual.fecha_liberacion).substring(0, 10) : '';
+      // Asignamos la fecha guardada, o si está liberado y no tiene fecha, hereda la fecha de envío por defecto en el modal
+      let fechaLibVal = regActual.fecha_liberacion ? String(regActual.fecha_liberacion).substring(0, 10) : '';
+      if(!fechaLibVal && !esLoteEnCuarentena(regActual) && !tieneResultadosPendientes(regActual)) {
+        fechaLibVal = regActual.fecha_envio ? String(regActual.fecha_envio).substring(0, 10) : new Date().toISOString().substring(0, 10);
+      }
+      document.getElementById('gFechaLib').value = fechaLibVal;
       
       const campos = cont.querySelectorAll('input');
       campos.forEach(c => c.addEventListener('input', evaluarEnVivoModal));
@@ -622,8 +640,7 @@
       }
 
       regActual.dictamen_final = document.getElementById('gDictamen').value;
-      // Guardamos exactamente la fecha introducida en el input del modal
-      regActual.fecha_liberacion = document.getElementById('gFechaLib').value;
+      regActual.fecha_liberacion = (regActual.dictamen_final === 'CONFORME LIBERADO') ? document.getElementById('gFechaLib').value : '';
       regActual.responsable = document.getElementById('gResp').value || '/';
       regActual.observaciones = document.getElementById('gObs').value || '/';
 
