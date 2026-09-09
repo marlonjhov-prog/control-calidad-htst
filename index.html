@@ -93,6 +93,7 @@
         <select id="filterEstado" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50">
           <option value="TODOS">Todos</option>
           <option value="LIBERADOS">Solo Liberados</option>
+          <option value="PENDIENTES">Pendientes Resultados</option>
           <option value="CUARENTENA">En Cuarentena</option>
         </select>
       </div>
@@ -107,7 +108,7 @@
       <div class="overflow-x-auto">
         <table class="w-full text-left text-[11px] min-w-[1200px]">
           <thead id="tablaCabecera" class="bg-slate-100 text-slate-500 uppercase font-bold border-b text-[10px]">
-            <!-- Generado dinámicamente según el filtro -->
+            <!-- Generado dinámicamente -->
           </thead>
           <tbody id="tablaResultados" class="divide-y divide-slate-100">
             <tr><td colspan="15" class="text-center py-6 text-slate-400 font-bold">Cargando base de datos...</td></tr>
@@ -143,8 +144,9 @@
       <div class="grid grid-cols-2 gap-3 text-xs">
         <div>
           <label class="block font-bold text-slate-700 mb-1">Dictamen de Liberación:</label>
-          <select id="gDictamen" class="w-full p-2 border-2 border-slate-300 rounded-lg bg-white font-black">
+          <select id="gDictamen" class="w-full p-2 border-2 border-slate-300 rounded-lg font-black transition-colors">
             <option value="CONFORME LIBERADO">✓ CONFORME LIBERADO</option>
+            <option value="PENDIENTE RESULTADOS">⏰ PENDIENTE RESULTADOS</option>
             <option value="EN CUARENTENA">⚠️ EN CUARENTENA / RESIEMBRA</option>
           </select>
         </div>
@@ -188,7 +190,7 @@
     </div>
   </div>
 
-  <!-- SCRIPT CON TABLAS DINÁMICAS INTELIGENTES -->
+  <!-- SCRIPT CON TABLAS DINÁMICAS Y REGLAS DE NEGOCIO ESTRICTAS -->
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKUoOy17vZnjqKjk8FnjsM7riy2IyGWOgjKWGBjE5UnJSFdZnLsZoiZi9GeZFQtDfOxQ/exec';
     
@@ -257,31 +259,38 @@
       }
     }
 
+    // ================= REGLAS DE NEGOCIO ESTRICTAS =================
     function esFueraDeNorma(v) {
       if(!v) return false;
       const val = String(v).trim().toUpperCase();
       if(['PENDIENTE','/','','✓','OK','-'].includes(val) || val.startsWith('<')) return false;
       const num = parseFloat(val.replace('>','').replace(',','.'));
+      // SI CUALQUIER NÚMERO ES >= 10, EL LOTE SE BLOQUEA Y VA A CUARENTENA
       return !isNaN(num) && num >= 10;
     }
-    function esPendiente(v) { return String(v||'').trim().toUpperCase() === 'PENDIENTE'; }
+
+    function esPendiente(v) { 
+      const val = String(v||'').trim().toUpperCase();
+      return val === 'PENDIENTE' || val === '' || val === 'PENDIENTE RESULTADOS';
+    }
 
     function tieneResultadosPendientes(r) {
-      const obs = String(r.observaciones||'');
-      if(/^\d{1,2}:\d{2}$/.test(obs.trim())) return true;
-      return r.tipo_proceso === 'UHT' 
-        ? (esPendiente(r.arb_mesofilos) || esPendiente(r.arb_termofilos) || esPendiente(r.acido_lacticas)) 
-        : (esPendiente(r.coliformes_totales) || esPendiente(r.e_coli) || esPendiente(r.arb_mesofilos));
+      if(r.tipo_proceso === 'UHT') {
+        return esPendiente(r.arb_mesofilos) || esPendiente(r.arb_termofilos) || esPendiente(r.acido_lacticas);
+      } else {
+        return esPendiente(r.coliformes_totales) || esPendiente(r.e_coli) || esPendiente(r.arb_mesofilos) || esPendiente(r.s_aureus) || esPendiente(r.enterobacterias) || esPendiente(r.mohos_levaduras);
+      }
     }
 
     function esLoteEnCuarentena(r) {
-      if(String(r.dictamen_final||'').toUpperCase().includes('CUARENTENA') || String(r.dictamen_final||'').toUpperCase().includes('RESIEMBRA')) return true;
       if(r.tipo_proceso === 'UHT') {
         return esFueraDeNorma(r.arb_mesofilos) || esFueraDeNorma(r.arb_termofilos) || esFueraDeNorma(r.acido_lacticas);
       } else {
         return esFueraDeNorma(r.coliformes_totales) || esFueraDeNorma(r.e_coli) || esFueraDeNorma(r.arb_mesofilos) || esFueraDeNorma(r.s_aureus) || esFueraDeNorma(r.enterobacterias) || esFueraDeNorma(r.mohos_levaduras);
       }
     }
+
+    // ===============================================================
 
     function limpiarValorCelda(val) {
       if(!val) return '/';
@@ -299,7 +308,7 @@
       return `<span class="${colorClass}">${v}</span>`;
     }
 
-    // ================= RENDERIZADO DINÁMICO DE LA TABLA SEGÚN FILTRO =================
+    // RENDERIZADO DINÁMICO DE LA TABLA
     function renderTabla(datos) {
       const filtroProc = document.getElementById('filterProceso').value;
       const thead = document.getElementById('tablaCabecera');
@@ -312,7 +321,7 @@
         return; 
       }
 
-      // CONSTRUIR CABECERA SEGÚN FILTRO ACTIVO
+      // CONSTRUIR CABECERA SEGÚN FILTRO
       if(filtroProc === 'UHT') {
         thead.innerHTML = `
           <tr>
@@ -349,7 +358,6 @@
             <th class="p-2.5 text-center">🗑️</th>
           </tr>`;
       } else {
-        // TODOS (HTST & UHT) -> Vista combinada estándar limpia
         thead.innerHTML = `
           <tr>
             <th class="p-2.5 w-12">Proc.</th>
@@ -375,35 +383,35 @@
         const cuarentena = esLoteEnCuarentena(row);
         const pendiente = tieneResultadosPendientes(row);
 
+        // REGLAS DE NEGOCIO PARA ESTADOS (EVALUACIÓN AUTOMÁTICA EN TIEMPO REAL)
+        let dict = '';
+        let claseDict = '';
+        if(cuarentena) {
+          dict = '⚠️ CUARENTENA';
+          claseDict = 'bg-rose-100 text-rose-800 border-rose-400 hover:bg-rose-200';
+        } else if(pendiente) {
+          dict = '⏰ PENDIENTE RESULTADOS';
+          claseDict = 'bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-200';
+        } else {
+          dict = '✓ LIBERADO';
+          claseDict = 'bg-emerald-100 text-emerald-800 border-emerald-400 hover:bg-emerald-200';
+        }
+
+        // LIMPIEZA TOTAL: Eliminado el cObs para que el nombre del producto quede 100% limpio
         let respFinal = row.responsable;
         if((!respFinal || respFinal === '/') && /^[A-Za-z]+$/.test(String(row.acido_lacticas||'').trim())) {
           respFinal = row.acido_lacticas;
         }
         let cResp = (respFinal && respFinal !== '/') ? `<span class="font-black text-amber-700">${respFinal}</span>` : '<span class="text-slate-300">/</span>';
-        let cObs = (row.observaciones && row.observaciones !== '/') ? `<br><span class="text-[9px] text-slate-400 italic font-normal block leading-tight truncate max-w-[120px]" title="${row.observaciones}">${row.observaciones}</span>` : '';
-
-        let dict = (row.dictamen_final || 'PENDIENTE').toUpperCase();
-        let claseDict = 'bg-emerald-100 text-emerald-800 border-emerald-400 hover:bg-emerald-200';
         
-        if(cuarentena) {
-          dict = '⚠️ CUARENTENA';
-          claseDict = 'bg-rose-100 text-rose-800 border-rose-400 hover:bg-rose-200';
-        } else if(pendiente || dict.includes('PENDIENTE')) {
-          dict = '⏰ PENDIENTE';
-          claseDict = 'bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-200';
-        } else if(row.fecha_liberacion) {
-          dict = `✓ LIBERADO`;
-        }
-
         let txtFechaLib = row.fecha_liberacion ? `<span class="bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">${String(row.fecha_liberacion).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
 
-        // FILAS SEGÚN EL FILTRO SELECCIONADO
         if(filtroProc === 'UHT') {
           return `
             <tr class="hover:bg-blue-50/50 border-b transition-colors">
               <td class="p-2.5 font-black text-cyan-700">${row.tipo_proceso}</td>
               <td class="p-2.5 font-medium text-slate-600 whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td>
-              <td class="p-2.5 font-bold text-[11px] truncate max-w-[160px]" title="${row.producto}">${row.producto}${cObs}</td>
+              <td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}</td>
               <td class="p-2.5 font-mono text-blue-600 font-bold whitespace-nowrap">${row.lote}</td>
               <td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50">${row.resultado_bromatologico||'✓'}</td>
               <td class="p-2.5 text-center bg-white border-l border-r border-slate-100">${renderCeldaMatriz(row.arb_mesofilos)}</td>
@@ -423,7 +431,7 @@
             <tr class="hover:bg-blue-50/50 border-b transition-colors">
               <td class="p-2.5 font-black text-blue-800">${row.tipo_proceso}</td>
               <td class="p-2.5 font-medium text-slate-600 whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td>
-              <td class="p-2.5 font-bold text-[11px] truncate max-w-[160px]" title="${row.producto}">${row.producto}${cObs}</td>
+              <td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}</td>
               <td class="p-2.5 font-mono text-blue-600 font-bold whitespace-nowrap">${row.lote}</td>
               <td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50">${row.resultado_bromatologico||'✓'}</td>
               <td class="p-2.5 text-center bg-white border-l border-r border-slate-100">${renderCeldaMatriz(row.coliformes_totales)}</td>
@@ -442,7 +450,6 @@
               </td>
             </tr>`;
         } else {
-          // TODOS
           let cMeso = renderCeldaMatriz(row.arb_mesofilos);
           let cTermColif = renderCeldaMatriz(esUHT ? row.arb_termofilos : row.coliformes_totales);
           let cLactEcoli = renderCeldaMatriz(esUHT ? row.acido_lacticas : row.e_coli);
@@ -454,7 +461,7 @@
             <tr class="hover:bg-blue-50/50 border-b transition-colors">
               <td class="p-2.5 font-black ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td>
               <td class="p-2.5 font-medium text-slate-600 whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td>
-              <td class="p-2.5 font-bold text-[11px] truncate max-w-[140px]" title="${row.producto}">${row.producto}${cObs}</td>
+              <td class="p-2.5 font-bold text-[11px] truncate max-w-[140px]" title="${row.producto}">${row.producto}</td>
               <td class="p-2.5 font-mono text-blue-600 font-bold whitespace-nowrap">${row.lote}</td>
               <td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50">${row.resultado_bromatologico||'✓'}</td>
               <td class="p-2.5 text-center bg-white border-l border-r border-slate-100">${cMeso}</td>
@@ -493,41 +500,53 @@
       if(regActual.tipo_proceso === 'UHT') {
         cont.innerHTML = `
           <div><label class="block mb-1 text-slate-500">Prod/Lib.:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico||'✓'}" class="w-full p-2 border rounded font-bold text-center"></div>
-          <div><label class="block mb-1 text-slate-500">ARB Mesófilos:</label><input type="text" id="gUHT_Meso" value="${regActual.arb_mesofilos||'/'}" class="w-full p-2 border rounded font-bold text-center"></div>
-          <div><label class="block mb-1 text-slate-500">ARB Termófilos:</label><input type="text" id="gUHT_Termo" value="${regActual.arb_termofilos||'/'}" class="w-full p-2 border rounded font-bold text-center"></div>
-          <div><label class="block mb-1 text-slate-500">Ácido Lácticas:</label><input type="text" id="gUHT_Lact" value="${valLacticas||'/'}" class="w-full p-2 border rounded font-bold text-center"></div>
+          <div><label class="block mb-1 text-slate-500">ARB Mesófilos:</label><input type="text" id="gUHT_Meso" value="${regActual.arb_mesofilos||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">ARB Termófilos:</label><input type="text" id="gUHT_Termo" value="${regActual.arb_termofilos||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">Ácido Lácticas:</label><input type="text" id="gUHT_Lact" value="${valLacticas||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800"></div>
         `;
       } else { 
         cont.innerHTML = `
           <div><label class="block mb-1 text-slate-500">Producción:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico||'✓'}" class="w-full p-2 border rounded font-bold text-center"></div>
-          <div><label class="block mb-1 text-slate-500">Coliformes:</label><input type="text" id="gHTST_Colif" value="${regActual.coliformes_totales||'/'}" class="w-full p-2 border rounded font-bold text-center"></div>
-          <div><label class="block mb-1 text-slate-500">E. Coli:</label><input type="text" id="gHTST_Ecoli" value="${regActual.e_coli||'/'}" class="w-full p-2 border rounded font-bold text-center"></div>
-          <div><label class="block mb-1 text-slate-500">Mesófilos:</label><input type="text" id="gHTST_Meso" value="${regActual.arb_mesofilos||'/'}" class="w-full p-2 border rounded font-bold text-center"></div>
-          <div><label class="block mb-1 text-slate-500">S. Aureus:</label><input type="text" id="gHTST_Aur" value="${regActual.s_aureus||'/'}" class="w-full p-2 border rounded font-bold text-center"></div>
-          <div><label class="block mb-1 text-slate-500">Enterobact.:</label><input type="text" id="gHTST_Entero" value="${regActual.enterobacterias||'/'}" class="w-full p-2 border rounded font-bold text-center"></div>
-          <div><label class="block mb-1 text-slate-500">Mohos/Lev.:</label><input type="text" id="gHTST_Mohos" value="${regActual.mohos_levaduras||'/'}" class="w-full p-2 border rounded font-bold text-center"></div>
+          <div><label class="block mb-1 text-slate-500">Coliformes:</label><input type="text" id="gHTST_Colif" value="${regActual.coliformes_totales||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">E. Coli:</label><input type="text" id="gHTST_Ecoli" value="${regActual.e_coli||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">Mesófilos:</label><input type="text" id="gHTST_Meso" value="${regActual.arb_mesofilos||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">S. Aureus:</label><input type="text" id="gHTST_Aur" value="${regActual.s_aureus||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">Enterobact.:</label><input type="text" id="gHTST_Entero" value="${regActual.enterobacterias||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">Mohos/Lev.:</label><input type="text" id="gHTST_Mohos" value="${regActual.mohos_levaduras||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800"></div>
         `;
       }
 
+      // ASIGNACIÓN DEL SELECTOR DEL DICTAMEN EN EL MODAL 
       let esCuarentena = esLoteEnCuarentena(regActual);
-      document.getElementById('gDictamen').value = esCuarentena ? 'EN CUARENTENA' : 'CONFORME LIBERADO';
+      let esPend = tieneResultadosPendientes(regActual);
       
       const selectDict = document.getElementById('gDictamen');
-      selectDict.className = esCuarentena 
-        ? "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800" 
-        : "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800";
+      if (esCuarentena) {
+          selectDict.value = 'EN CUARENTENA';
+          selectDict.className = "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800 transition-colors";
+      } else if (esPend) {
+          selectDict.value = 'PENDIENTE RESULTADOS';
+          selectDict.className = "w-full p-2 border-2 border-amber-400 rounded-lg bg-amber-50 font-black text-amber-800 transition-colors";
+      } else {
+          selectDict.value = 'CONFORME LIBERADO';
+          selectDict.className = "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800 transition-colors";
+      }
 
       selectDict.onchange = (e) => {
-        e.target.className = e.target.value === 'EN CUARENTENA'
-          ? "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800"
-          : "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800";
+        if (e.target.value === 'EN CUARENTENA') e.target.className = "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800 transition-colors";
+        else if (e.target.value === 'PENDIENTE RESULTADOS') e.target.className = "w-full p-2 border-2 border-amber-400 rounded-lg bg-amber-50 font-black text-amber-800 transition-colors";
+        else e.target.className = "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800 transition-colors";
       };
 
       let respVal = regActual.responsable;
       if((!respVal || respVal === '/') && /^[A-Za-z]+$/.test(String(regActual.acido_lacticas||'').trim())) respVal = regActual.acido_lacticas;
       
+      let obsFinal = regActual.observaciones || '';
+      // Limpieza de fechas 1899 dentro del cuadro del modal
+      if(obsFinal.includes('1899-12-30')) obsFinal = ''; 
+
       document.getElementById('gResp').value = respVal || '';
-      document.getElementById('gObs').value = regActual.observaciones || '';
+      document.getElementById('gObs').value = obsFinal;
       document.getElementById('modalGestion').classList.remove('hidden');
     }
 
@@ -681,8 +700,15 @@
       datosFiltradosGlobales = datosGlobales.filter(r => {
         const f = r.fecha_envio ? String(r.fecha_envio).split('T')[0] : '';
         const mP = (proc === 'TODOS' || r.tipo_proceso === proc);
-        const mE = (est === 'TODOS' || (est === 'LIBERADOS' ? (!esLoteEnCuarentena(r) && !tieneResultadosPendientes(r)) : esLoteEnCuarentena(r)||tieneResultadosPendientes(r)));
-        return mP && mE && (!fec || f === fec) && (!prod || r.producto === prod) && (!lote || r.lote === lote);
+        
+        // El filtro de estado usa las mismas reglas exactas del sistema automático
+        let cumpleEstado = false;
+        if(est === 'TODOS') cumpleEstado = true;
+        else if(est === 'LIBERADOS') cumpleEstado = (!esLoteEnCuarentena(r) && !tieneResultadosPendientes(r));
+        else if(est === 'PENDIENTES') cumpleEstado = (!esLoteEnCuarentena(r) && tieneResultadosPendientes(r));
+        else if(est === 'CUARENTENA') cumpleEstado = esLoteEnCuarentena(r);
+
+        return mP && cumpleEstado && (!fec || f === fec) && (!prod || r.producto === prod) && (!lote || r.lote === lote);
       });
       paginaActual = 1;
       document.getElementById('kpiCount').innerText = `${datosFiltradosGlobales.length} registros`;
