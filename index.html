@@ -616,7 +616,7 @@
       procesarConIA(input.files[0], key);
     }
 
-    // ================= MOTOR IA (GEMINI-3.6-FLASH CON REINTENTOS AUTOMÁTICOS) =================
+    // ================= MOTOR IA (GEMINI-3.5-FLASH-LITE ESTABLE + REINTENTOS) =================
     async function procesarConIA(file, key, intento = 1) {
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block font-bold';
@@ -653,7 +653,8 @@
         }]
         DEVUELVE ÚNICA Y EXCLUSIVAMENTE EL ARREGLO JSON.`;
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(key.trim())}`;
+        // SELECCIÓN DE MODELO ACTUALIZADO Y ESTABLE gemini-3.5-flash-lite EVITANDO SATURACIONES 503
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(key.trim())}`;
         const response = await fetch(url, {
           method: 'POST', 
           headers: { 'Content-Type': 'application/json' },
