@@ -51,6 +51,38 @@
       <div id="keyStatus" class="text-[11px]"></div>
     </section>
 
+    <!-- DASHBOARD DE KPIS EJECUTIVOS -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-[10px] uppercase font-bold text-slate-400">Total Lotes</p>
+          <h3 id="kpiTotal" class="text-xl font-black text-slate-800">0</h3>
+        </div>
+        <div class="bg-blue-50 p-3 rounded-lg text-blue-600"><i data-lucide="layers" class="w-5 h-5"></i></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-[10px] uppercase font-bold text-emerald-600">Liberados</p>
+          <h3 id="kpiLiberados" class="text-xl font-black text-emerald-700">0</h3>
+        </div>
+        <div class="bg-emerald-50 p-3 rounded-lg text-emerald-600"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-[10px] uppercase font-bold text-amber-600">Pendientes</p>
+          <h3 id="kpiPendientes" class="text-xl font-black text-amber-600">0</h3>
+        </div>
+        <div class="bg-amber-50 p-3 rounded-lg text-amber-600"><i data-lucide="clock" class="w-5 h-5"></i></div>
+      </div>
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+        <div>
+          <p class="text-[10px] uppercase font-bold text-rose-600">En Cuarentena</p>
+          <h3 id="kpiCuarentena" class="text-xl font-black text-rose-600">0</h3>
+        </div>
+        <div class="bg-rose-50 p-3 rounded-lg text-rose-600"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+      </div>
+    </section>
+
     <!-- CARGA DE IMÁGENES -->
     <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
       <div class="flex justify-between items-center mb-3">
@@ -171,9 +203,7 @@
       <!-- VISTA PREVIA MATRIZ EN VIVO -->
       <div class="bg-blue-50/50 border border-blue-200 rounded-lg p-3 mt-2">
         <h4 class="text-[10px] font-bold text-blue-800 mb-2 uppercase tracking-wide flex items-center gap-1">👁️ Vista Previa de la Matriz Final</h4>
-        <div id="previewMatrizModal" class="overflow-x-auto bg-white rounded shadow-sm border border-slate-200">
-          <!-- Tabla Mini generada en JS -->
-        </div>
+        <div id="previewMatrizModal" class="overflow-x-auto bg-white rounded shadow-sm border border-slate-200"></div>
       </div>
 
       <!-- Botones Acción -->
@@ -206,7 +236,7 @@
     </div>
   </div>
 
-  <!-- SCRIPT BASE CON LÓGICA ULTRA AUTOMÁTICA -->
+  <!-- SCRIPT -->
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKUoOy17vZnjqKjk8FnjsM7riy2IyGWOgjKWGBjE5UnJSFdZnLsZoiZi9GeZFQtDfOxQ/exec';
     
@@ -274,13 +304,11 @@
       }
     }
 
-    // ================= 1. REGLAS DE EVALUACIÓN PURA =================
+    // ================= REGLAS DE EVALUACIÓN =================
     function esFueraDeNorma(v) {
       if(!v) return false;
       const val = String(v).trim().toUpperCase();
       if(['PENDIENTE','/','','✓','OK','-'].includes(val) || val.startsWith('<')) return false;
-      
-      // Aspiradora de números: Si la IA mete letras con el número, extrae el número y evalúa.
       const numMatch = val.match(/\d+(\.\d+)?/);
       if(numMatch) return parseFloat(numMatch[0]) >= 10;
       return false;
@@ -292,7 +320,6 @@
     }
 
     function tieneResultadosPendientes(r) {
-      // Si en observaciones dejaron registrada una hora (ej 8:08), se queda pendiente obligatoriamente
       if(/^\d{1,2}:\d{2}$/.test(String(r.observaciones||'').trim())) return true;
       if(r.tipo_proceso === 'UHT') {
         return esPendiente(r.arb_mesofilos) || esPendiente(r.arb_termofilos) || esPendiente(r.acido_lacticas);
@@ -309,12 +336,11 @@
       }
     }
 
-    // ================= 2. LIMPIEZA VISUAL INTELIGENTE =================
     function limpiarValorCelda(val) {
       if(!val) return '/';
       let v = String(val).trim();
-      if(v.toUpperCase().includes('PENDIENTE')) return 'PENDIENTE'; // No borramos la palabra pendiente si existe explícita
-      if(/^[A-Za-z]+$/.test(v) && !['OK','✓','V'].includes(v.toUpperCase())) return '/'; // Borra EO, RO, etc cruzados.
+      if(v.toUpperCase().includes('PENDIENTE')) return 'PENDIENTE';
+      if(/^[A-Za-z]+$/.test(v) && !['OK','✓','V'].includes(v.toUpperCase())) return '/';
       return v;
     }
 
@@ -327,7 +353,30 @@
       return `<span class="${colorClass}">${v}</span>`;
     }
 
-    // ================= 3. RENDERIZADO DE TABLA PRINCIPAL (EVALUACIÓN EN VIVO) =================
+    // ================= ACTUALIZACIÓN DE KPIS / DASHBOARD =================
+    function actualizarKPIs(listaDatos) {
+      const total = listaDatos.length;
+      let liberados = 0;
+      let pendientes = 0;
+      let cuarentena = 0;
+
+      listaDatos.forEach(r => {
+        if (esLoteEnCuarentena(r)) {
+          cuarentena++;
+        } else if (tieneResultadosPendientes(r)) {
+          pendientes++;
+        } else {
+          liberados++;
+        }
+      });
+
+      document.getElementById('kpiTotal').innerText = total;
+      document.getElementById('kpiLiberados').innerText = liberados;
+      document.getElementById('kpiPendientes').innerText = pendientes;
+      document.getElementById('kpiCuarentena').innerText = cuarentena;
+    }
+
+    // ================= RENDERIZADO DE TABLA =================
     function renderTabla(datos) {
       const filtroProc = document.getElementById('filterProceso').value;
       const thead = document.getElementById('tablaCabecera');
@@ -340,7 +389,6 @@
         return; 
       }
 
-      // CABECERAS
       if(filtroProc === 'UHT') {
         thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">Termóf.</th><th class="p-2.5 text-center bg-slate-200/50">Lácticas</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
       } else if(filtroProc === 'HTST') {
@@ -354,7 +402,6 @@
         const cuarentena = esLoteEnCuarentena(row);
         const pendiente = tieneResultadosPendientes(row);
 
-        // AQUÍ ESTÁ LA SOLUCIÓN DEL ERROR: Ignoramos el texto de la DB si los datos ya están correctos.
         let dict = '';
         let claseDict = '';
         if(cuarentena) {
@@ -368,13 +415,11 @@
           claseDict = 'bg-emerald-100 text-emerald-800 border-emerald-400 hover:bg-emerald-200';
         }
 
-        // Rescate de Responsable y Limpieza de Observaciones
         let respFinal = row.responsable;
         if((!respFinal || respFinal === '/') && /^[A-Za-z]+$/.test(String(row.acido_lacticas||'').trim()) && row.acido_lacticas !== 'PENDIENTE') respFinal = row.acido_lacticas;
         let cResp = (respFinal && respFinal !== '/') ? `<span class="font-black text-amber-700">${respFinal}</span>` : '<span class="text-slate-300">/</span>';
         let cObs = (row.observaciones && row.observaciones !== '/' && !String(row.observaciones).includes('1899-')) ? `<br><span class="text-[9px] text-slate-400 italic block truncate max-w-[120px]">${row.observaciones}</span>` : '';
 
-        // Auto-Asignación de Fecha si está liberado
         let fLib = row.fecha_liberacion;
         if (dict === '✓ LIBERADO' && (!fLib || fLib === '-')) fLib = row.fecha_envio;
         let txtFechaLib = fLib ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
@@ -390,12 +435,10 @@
       lucide.createIcons();
     }
 
-    // ================= 4. MODAL DINÁMICO Y VISTA PREVIA EN VIVO =================
-    
-    // El motor que evalúa los campos CADA VEZ QUE TECLAS, actualiza los colores y la mini-matriz
+    // ================= MODAL Y VISTA PREVIA EN VIVO =================
     function evaluarEnVivoModal() {
       const esUHT = regActual.tipo_proceso === 'UHT';
-      let objSimulado = { ...regActual }; // Copia para no dañar la tabla principal aún
+      let objSimulado = { ...regActual };
       
       objSimulado.resultado_bromatologico = document.getElementById('gBromat').value;
       if(esUHT) {
@@ -413,7 +456,6 @@
       objSimulado.responsable = document.getElementById('gResp').value;
       objSimulado.observaciones = document.getElementById('gObs').value;
 
-      // Evaluamos el estado del objeto simulado
       let cuarentena = esLoteEnCuarentena(objSimulado);
       let pendiente = tieneResultadosPendientes(objSimulado);
       
@@ -425,12 +467,12 @@
           estadoVivo = 'EN CUARENTENA';
           selectDict.value = 'EN CUARENTENA';
           selectDict.className = "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800 transition-colors cursor-not-allowed pointer-events-none";
-          fechaLib.value = ''; // En cuarentena se borra la fecha
+          fechaLib.value = '';
       } else if (pendiente) {
           estadoVivo = 'PENDIENTE RESULTADOS';
           selectDict.value = 'PENDIENTE RESULTADOS';
           selectDict.className = "w-full p-2 border-2 border-amber-400 rounded-lg bg-amber-50 font-black text-amber-800 transition-colors cursor-not-allowed pointer-events-none";
-          fechaLib.value = ''; // Si faltan datos, se borra la fecha
+          fechaLib.value = '';
       } else {
           estadoVivo = 'CONFORME LIBERADO';
           selectDict.value = 'CONFORME LIBERADO';
@@ -441,7 +483,6 @@
       objSimulado.dictamen_final = estadoVivo;
       objSimulado.fecha_liberacion = (estadoVivo === 'CONFORME LIBERADO') ? fechaLib.value : '';
 
-      // RENDERIZAMOS LA MINI-MATRIZ DE VISTA PREVIA
       renderizarPreviewMatriz(objSimulado, estadoVivo);
     }
 
@@ -501,7 +542,6 @@
       `;
     }
 
-    // ABRIR EL MODAL
     function abrirModalGestion(id) {
       regActual = datosGlobales.find(d => d.frontend_id === id);
       if(!regActual) return;
@@ -543,20 +583,16 @@
       document.getElementById('gResp').value = respVal || '';
       document.getElementById('gObs').value = obsFinal;
       
-      // ESCUCHADORES DE EVENTOS PARA EL "EN VIVO"
       const campos = cont.querySelectorAll('input');
       campos.forEach(c => c.addEventListener('input', evaluarEnVivoModal));
       document.getElementById('gObs').addEventListener('input', evaluarEnVivoModal);
       document.getElementById('gResp').addEventListener('input', evaluarEnVivoModal);
       document.getElementById('gFechaLib').addEventListener('input', evaluarEnVivoModal);
 
-      // Lanzamos la evaluación inicial para armar la mini-matriz al abrir el modal
       evaluarEnVivoModal();
-
       document.getElementById('modalGestion').classList.remove('hidden');
     }
 
-    // GUARDAR EN BD
     async function guardarGestionModal() {
       if(!regActual) return;
       
@@ -588,7 +624,6 @@
       await enviarABaseDeDatos({ action: 'DELETE', id_registro: id });
     }
 
-    // IA y LLAMADAS DE RED (Siguen intactas y blindadas)
     async function procesarArchivo() {
       const input = document.getElementById('fileInput');
       if(!input.files.length) return alert('Selecciona una imagen.');
@@ -700,6 +735,10 @@
         else if(est === 'CUARENTENA') cumpleEstado = esLoteEnCuarentena(r);
         return mP && cumpleEstado && (!fec || f === fec) && (!prod || r.producto === prod) && (!lote || r.lote === lote);
       });
+
+      // Actualizamos los KPIs basándonos en los datos filtrados actuales
+      actualizarKPIs(datosFiltradosGlobales);
+
       paginaActual = 1;
       document.getElementById('kpiCount').innerText = `${datosFiltradosGlobales.length} registros`;
       renderPagina(); 
