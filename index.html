@@ -81,7 +81,7 @@
         </div>
         <div class="bg-rose-50 p-2.5 rounded-lg text-rose-600"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div>
       </div>
-      <!-- NUEVOS KPIS DE EFICIENCIA -->
+      <!-- KPIS DE EFICIENCIA Y CALIDAD -->
       <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between bg-gradient-to-br from-emerald-50/40 to-white">
         <div>
           <p class="text-[9px] uppercase font-bold text-emerald-700">Conformidad Directa</p>
@@ -384,7 +384,6 @@
       document.getElementById('kpiPendientes').innerText = pendientes;
       document.getElementById('kpiCuarentena').innerText = cuarentena;
 
-      // KPIs de Eficiencia y Calidad
       const conformidad = total > 0 ? Math.round((liberados / total) * 100) : 100;
       const tasaCuar = total > 0 ? ((cuarentena / total) * 100).toFixed(1) : 0;
 
@@ -435,9 +434,9 @@
         let cResp = (respFinal && respFinal !== '/') ? `<span class="font-black text-amber-700">${respFinal}</span>` : '<span class="text-slate-300">/</span>';
         let cObs = (row.observaciones && row.observaciones !== '/' && !String(row.observaciones).includes('1899-')) ? `<br><span class="text-[9px] text-slate-400 italic block truncate max-w-[120px]">${row.observaciones}</span>` : '';
 
+        // Muestra estrictamente la fecha de liberación guardada en la base de datos (o guion si no tiene)
         let fLib = row.fecha_liberacion;
-        if (dict === '✓ LIBERADO' && (!fLib || fLib === '-')) fLib = row.fecha_envio;
-        let txtFechaLib = fLib ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
+        let txtFechaLib = (fLib && fLib !== '-' && fLib !== '') ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
 
         if(filtroProc === 'UHT') {
           return `<tr class="hover:bg-blue-50 border-b"><td class="p-2.5 font-black text-cyan-700">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50">${row.resultado_bromatologico||'✓'}</td><td class="p-2.5 text-center bg-white border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(row.arb_termofilos)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(row.acido_lacticas)}</td><td class="p-2.5 text-center border-l bg-amber-50/50">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id_registro}')" class="text-rose-400 hover:text-rose-600 p-1 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
@@ -474,28 +473,25 @@
       let pendiente = tieneResultadosPendientes(objSimulado);
       
       const selectDict = document.getElementById('gDictamen');
-      const fechaLib = document.getElementById('gFechaLib');
 
       let estadoVivo = '';
       if (cuarentena) {
           estadoVivo = 'EN CUARENTENA';
           selectDict.value = 'EN CUARENTENA';
           selectDict.className = "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800 transition-colors cursor-not-allowed pointer-events-none";
-          fechaLib.value = '';
       } else if (pendiente) {
           estadoVivo = 'PENDIENTE RESULTADOS';
           selectDict.value = 'PENDIENTE RESULTADOS';
           selectDict.className = "w-full p-2 border-2 border-amber-400 rounded-lg bg-amber-50 font-black text-amber-800 transition-colors cursor-not-allowed pointer-events-none";
-          fechaLib.value = '';
       } else {
           estadoVivo = 'CONFORME LIBERADO';
           selectDict.value = 'CONFORME LIBERADO';
           selectDict.className = "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800 transition-colors cursor-not-allowed pointer-events-none";
-          if(!fechaLib.value) fechaLib.value = objSimulado.fecha_envio ? String(objSimulado.fecha_envio).substring(0, 10) : new Date().toISOString().substring(0, 10);
       }
 
       objSimulado.dictamen_final = estadoVivo;
-      objSimulado.fecha_liberacion = (estadoVivo === 'CONFORME LIBERADO') ? fechaLib.value : '';
+      // Respetamos la fecha elegida manualmente en el input del modal
+      objSimulado.fecha_liberacion = document.getElementById('gFechaLib').value;
 
       renderizarPreviewMatriz(objSimulado, estadoVivo);
     }
@@ -597,6 +593,10 @@
       document.getElementById('gResp').value = respVal || '';
       document.getElementById('gObs').value = obsFinal;
       
+      // Asignamos exactamente la fecha guardada en el registro (o la fecha actual si está vacía)
+      let fechaLibVal = regActual.fecha_liberacion ? String(regActual.fecha_liberacion).substring(0, 10) : new Date().toISOString().substring(0, 10);
+      document.getElementById('gFechaLib').value = fechaLibVal;
+      
       const campos = cont.querySelectorAll('input');
       campos.forEach(c => c.addEventListener('input', evaluarEnVivoModal));
       document.getElementById('gObs').addEventListener('input', evaluarEnVivoModal);
@@ -625,7 +625,8 @@
       }
 
       regActual.dictamen_final = document.getElementById('gDictamen').value;
-      regActual.fecha_liberacion = (regActual.dictamen_final === 'CONFORME LIBERADO') ? document.getElementById('gFechaLib').value : '';
+      // Guardamos estrictamente la fecha elegida manualmente en el input del modal
+      regActual.fecha_liberacion = document.getElementById('gFechaLib').value;
       regActual.responsable = document.getElementById('gResp').value || '/';
       regActual.observaciones = document.getElementById('gObs').value || '/';
 
@@ -738,11 +739,9 @@
     const toBase64 = file => new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); });
     
     function poblarFiltrosJerarquicos() {
-      // Poblar Productos
       const productos = [...new Set(datosGlobales.map(d => d.producto).filter(Boolean))].sort();
       document.getElementById('filterProducto').innerHTML = '<option value="">Todos los Productos</option>' + productos.map(x => `<option value="${x}">${x}</option>`).join('');
 
-      // Poblar Años dinámicos basados en la fecha de envío de los registros
       const anios = [...new Set(datosGlobales.map(d => {
         if(!d.fecha_envio) return null;
         return String(d.fecha_envio).substring(0, 4);
@@ -770,7 +769,6 @@
         const mMes = (mes === 'TODOS' || mesReg === mes);
         const mProd = (!prod || r.producto === prod);
 
-        // Búsqueda libre en tiempo real por Lote o Producto
         const loteVal = String(r.lote || '').toLowerCase();
         const prodVal = String(r.producto || '').toLowerCase();
         const mTexto = (!textoBusqueda || loteVal.includes(textoBusqueda) || prodVal.includes(textoBusqueda));
