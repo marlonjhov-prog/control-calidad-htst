@@ -126,46 +126,62 @@
 
   </main>
 
-  <!-- MODAL GESTIÓN INTERACTIVO (EVALUACIÓN EN VIVO) -->
+  <!-- MODAL GESTIÓN INTERACTIVO CON VISTA PREVIA EN VIVO -->
   <div id="modalGestion" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-3">
+    <div class="bg-white rounded-2xl p-5 max-w-4xl w-full shadow-2xl space-y-3 max-h-[95vh] overflow-y-auto">
+      
+      <!-- Cabecera Modal -->
+      <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5 text-blue-600"></i> Corregir Parámetros y Liberar Lote</h3>
         <button onclick="document.getElementById('modalGestion').classList.add('hidden')" class="text-slate-400 font-bold text-lg hover:text-rose-600">✕</button>
       </div>
-      <div class="text-xs bg-slate-50 p-3 rounded-lg border">
+
+      <!-- Info Producto -->
+      <div class="text-[11px] bg-slate-50 p-2 rounded-lg border flex gap-6">
         <p><span class="font-semibold text-slate-500">Producto:</span> <span id="gProd" class="font-bold text-slate-800"></span></p>
         <p><span class="font-semibold text-slate-500">Lote:</span> <span id="gLote" class="font-bold text-blue-600 font-mono"></span> | <span id="gProc" class="font-bold"></span></p>
       </div>
-      <div class="bg-white border rounded-lg p-4">
-        <h4 class="text-[11px] font-bold text-slate-500 mb-3 uppercase tracking-wide">Resultados Microbiológicos (Modificables)</h4>
-        <div id="gCamposDinamicos" class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs"></div>
+
+      <!-- Sección de Inputs Dinámicos -->
+      <div class="bg-white border border-slate-200 rounded-lg p-3">
+        <h4 class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Resultados Microbiológicos (Modificables)</h4>
+        <div id="gCamposDinamicos" class="grid grid-cols-3 md:grid-cols-4 gap-2 text-[11px]"></div>
       </div>
-      <div class="grid grid-cols-2 gap-3 text-xs">
-        <div>
+
+      <!-- Dictamen y Datos Finales -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-[11px]">
+        <div class="md:col-span-2">
           <label class="block font-bold text-slate-700 mb-1">Dictamen de Liberación (Automático):</label>
-          <select id="gDictamen" class="w-full p-2 border-2 border-slate-300 rounded-lg font-black transition-colors shadow-sm">
-            <option value="CONFORME LIBERADO">✓ CONFORME LIBERADO</option>
-            <option value="PENDIENTE RESULTADOS">⏰ PENDIENTE RESULTADOS</option>
-            <option value="EN CUARENTENA">⚠️ EN CUARENTENA / RESIEMBRA</option>
-          </select>
+          <select id="gDictamen" class="w-full p-2 border-2 rounded-lg font-black transition-colors shadow-sm cursor-not-allowed pointer-events-none"></select>
         </div>
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Fecha de Liberación (Cierre):</label>
+          <label class="block font-bold text-slate-700 mb-1">F. Liberación (Cierre):</label>
           <input type="date" id="gFechaLib" class="w-full p-2 border border-slate-300 rounded-lg bg-slate-50 font-bold">
         </div>
         <div>
-          <label class="block font-bold text-slate-700 mb-1">Responsable (EO, RO...):</label>
+          <label class="block font-bold text-slate-700 mb-1">Responsable:</label>
           <input type="text" id="gResp" class="w-full p-2 border rounded-lg font-bold bg-amber-50">
         </div>
-        <div>
+        <div class="col-span-2 md:col-span-4">
           <label class="block font-bold text-slate-700 mb-1">Observaciones / Horas:</label>
           <input type="text" id="gObs" class="w-full p-2 border rounded-lg" placeholder="Ej: 8:08">
         </div>
       </div>
-      <div class="pt-3 flex justify-end gap-2 border-t mt-4">
+
+      <!-- VISTA PREVIA MATRIZ EN VIVO -->
+      <div class="bg-blue-50/50 border border-blue-200 rounded-lg p-3 mt-2">
+        <h4 class="text-[10px] font-bold text-blue-800 mb-2 uppercase tracking-wide flex items-center gap-1">👁️ Vista Previa de la Matriz Final</h4>
+        <div id="previewMatrizModal" class="overflow-x-auto bg-white rounded shadow-sm border border-slate-200">
+          <!-- Tabla Mini generada en JS -->
+        </div>
+      </div>
+
+      <!-- Botones Acción -->
+      <div class="pt-2 flex justify-end gap-2 mt-2">
         <button onclick="document.getElementById('modalGestion').classList.add('hidden')" class="px-4 py-2 bg-slate-100 text-xs font-bold text-slate-600 rounded-lg">Cancelar</button>
-        <button onclick="guardarGestionModal()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm">Actualizar Matriz y Guardar</button>
+        <button onclick="guardarGestionModal()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-2">
+          <i data-lucide="save" class="w-4 h-4"></i> Guardar y Aplicar Cambios
+        </button>
       </div>
     </div>
   </div>
@@ -190,7 +206,7 @@
     </div>
   </div>
 
-  <!-- SCRIPT -->
+  <!-- SCRIPT BASE CON LÓGICA ULTRA AUTOMÁTICA -->
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKUoOy17vZnjqKjk8FnjsM7riy2IyGWOgjKWGBjE5UnJSFdZnLsZoiZi9GeZFQtDfOxQ/exec';
     
@@ -258,17 +274,15 @@
       }
     }
 
-    // ================= REGLAS DE NEGOCIO Y EVALUACIÓN =================
+    // ================= 1. REGLAS DE EVALUACIÓN PURA =================
     function esFueraDeNorma(v) {
       if(!v) return false;
       const val = String(v).trim().toUpperCase();
       if(['PENDIENTE','/','','✓','OK','-'].includes(val) || val.startsWith('<')) return false;
       
-      // EXTRACCIÓN INTELIGENTE DE NÚMEROS (Si viene "1 UFC", saca el 1)
+      // Aspiradora de números: Si la IA mete letras con el número, extrae el número y evalúa.
       const numMatch = val.match(/\d+(\.\d+)?/);
-      if(numMatch) {
-         return parseFloat(numMatch[0]) >= 10;
-      }
+      if(numMatch) return parseFloat(numMatch[0]) >= 10;
       return false;
     }
 
@@ -278,6 +292,7 @@
     }
 
     function tieneResultadosPendientes(r) {
+      // Si en observaciones dejaron registrada una hora (ej 8:08), se queda pendiente obligatoriamente
       if(/^\d{1,2}:\d{2}$/.test(String(r.observaciones||'').trim())) return true;
       if(r.tipo_proceso === 'UHT') {
         return esPendiente(r.arb_mesofilos) || esPendiente(r.arb_termofilos) || esPendiente(r.acido_lacticas);
@@ -294,13 +309,12 @@
       }
     }
 
-    // ================= LIMPIEZA VISUAL INTELIGENTE =================
+    // ================= 2. LIMPIEZA VISUAL INTELIGENTE =================
     function limpiarValorCelda(val) {
       if(!val) return '/';
       let v = String(val).trim();
-      // ¡NO ocultamos la palabra PENDIENTE! Así evitamos que se vea la barra "/" y engañe al usuario.
-      if(v.toUpperCase().includes('PENDIENTE')) return 'PENDIENTE';
-      if(/^[A-Za-z]+$/.test(v) && !['OK','✓','V'].includes(v.toUpperCase())) return '/';
+      if(v.toUpperCase().includes('PENDIENTE')) return 'PENDIENTE'; // No borramos la palabra pendiente si existe explícita
+      if(/^[A-Za-z]+$/.test(v) && !['OK','✓','V'].includes(v.toUpperCase())) return '/'; // Borra EO, RO, etc cruzados.
       return v;
     }
 
@@ -313,7 +327,7 @@
       return `<span class="${colorClass}">${v}</span>`;
     }
 
-    // RENDERIZADO DINÁMICO DE LA TABLA
+    // ================= 3. RENDERIZADO DE TABLA PRINCIPAL (EVALUACIÓN EN VIVO) =================
     function renderTabla(datos) {
       const filtroProc = document.getElementById('filterProceso').value;
       const thead = document.getElementById('tablaCabecera');
@@ -328,11 +342,11 @@
 
       // CABECERAS
       if(filtroProc === 'UHT') {
-        thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Prod./Lib.</th><th class="p-2.5 text-center bg-slate-200/50">Mesófilos</th><th class="p-2.5 text-center bg-slate-200/50">Termófilos</th><th class="p-2.5 text-center bg-slate-200/50">Ácido Lácticas</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Liberación</th><th class="p-2.5 text-center">Dictamen (Clic)</th><th class="p-2.5 text-center">🗑️</th></tr>`;
+        thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">Termóf.</th><th class="p-2.5 text-center bg-slate-200/50">Lácticas</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
       } else if(filtroProc === 'HTST') {
-        thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Producción</th><th class="p-2.5 text-center bg-slate-200/50">Coliformes</th><th class="p-2.5 text-center bg-slate-200/50">E. Coli</th><th class="p-2.5 text-center bg-slate-200/50">Mesófilos</th><th class="p-2.5 text-center bg-slate-200/50">S. Aureus</th><th class="p-2.5 text-center bg-slate-200/50">Enterobact.</th><th class="p-2.5 text-center bg-slate-200/50">Mohos/Lev.</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Liberación</th><th class="p-2.5 text-center">Dictamen (Clic)</th><th class="p-2.5 text-center">🗑️</th></tr>`;
+        thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Colif.</th><th class="p-2.5 text-center bg-slate-200/50">E.Coli</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">S.Aur.</th><th class="p-2.5 text-center bg-slate-200/50">Entero.</th><th class="p-2.5 text-center bg-slate-200/50">Mohos</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
       } else {
-        thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">Term.(u)<br>Colif.(h)</th><th class="p-2.5 text-center bg-slate-200/50">Láct.(u)<br>E.Coli(h)</th><th class="p-2.5 text-center bg-slate-200/50">S.Aur.</th><th class="p-2.5 text-center bg-slate-200/50">Entero.</th><th class="p-2.5 text-center bg-slate-200/50">Mohos</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Liberación</th><th class="p-2.5 text-center">Dictamen (Clic)</th><th class="p-2.5 text-center">🗑️</th></tr>`;
+        thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">Term(u)<br>Colif(h)</th><th class="p-2.5 text-center bg-slate-200/50">Láct(u)<br>E.Coli(h)</th><th class="p-2.5 text-center bg-slate-200/50">S.Aur.</th><th class="p-2.5 text-center bg-slate-200/50">Entero.</th><th class="p-2.5 text-center bg-slate-200/50">Mohos</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
       }
 
       tbody.innerHTML = datos.map(row => {
@@ -340,13 +354,13 @@
         const cuarentena = esLoteEnCuarentena(row);
         const pendiente = tieneResultadosPendientes(row);
 
-        // ESTADOS PRINCIPALES
+        // AQUÍ ESTÁ LA SOLUCIÓN DEL ERROR: Ignoramos el texto de la DB si los datos ya están correctos.
         let dict = '';
         let claseDict = '';
         if(cuarentena) {
           dict = '⚠️ CUARENTENA';
           claseDict = 'bg-rose-100 text-rose-800 border-rose-400 hover:bg-rose-200';
-        } else if(pendiente || String(row.dictamen_final).toUpperCase().includes('PENDIENTE')) {
+        } else if(pendiente) {
           dict = '⏰ PENDIENTE RESULTADOS';
           claseDict = 'bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-200';
         } else {
@@ -354,67 +368,140 @@
           claseDict = 'bg-emerald-100 text-emerald-800 border-emerald-400 hover:bg-emerald-200';
         }
 
-        // Rescate del Responsable en caso de desborde
+        // Rescate de Responsable y Limpieza de Observaciones
         let respFinal = row.responsable;
-        if((!respFinal || respFinal === '/') && /^[A-Za-z]+$/.test(String(row.acido_lacticas||'').trim()) && row.acido_lacticas !== 'PENDIENTE') {
-          respFinal = row.acido_lacticas;
-        }
+        if((!respFinal || respFinal === '/') && /^[A-Za-z]+$/.test(String(row.acido_lacticas||'').trim()) && row.acido_lacticas !== 'PENDIENTE') respFinal = row.acido_lacticas;
         let cResp = (respFinal && respFinal !== '/') ? `<span class="font-black text-amber-700">${respFinal}</span>` : '<span class="text-slate-300">/</span>';
-        
-        // Limpiar fechas "1899" erróneas de las observaciones que manchaban el nombre del producto
-        let cObs = '';
-        if(row.observaciones && row.observaciones !== '/' && !String(row.observaciones).includes('1899-')) {
-            cObs = `<br><span class="text-[9px] text-slate-400 italic font-normal block leading-tight truncate max-w-[120px]" title="${row.observaciones}">${row.observaciones}</span>`;
-        }
+        let cObs = (row.observaciones && row.observaciones !== '/' && !String(row.observaciones).includes('1899-')) ? `<br><span class="text-[9px] text-slate-400 italic block truncate max-w-[120px]">${row.observaciones}</span>` : '';
 
-        let txtFechaLib = row.fecha_liberacion ? `<span class="bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">${String(row.fecha_liberacion).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
+        // Auto-Asignación de Fecha si está liberado
+        let fLib = row.fecha_liberacion;
+        if (dict === '✓ LIBERADO' && (!fLib || fLib === '-')) fLib = row.fecha_envio;
+        let txtFechaLib = fLib ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
 
         if(filtroProc === 'UHT') {
-          return `<tr class="hover:bg-blue-50/50 border-b transition-colors"><td class="p-2.5 font-black text-cyan-700">${row.tipo_proceso}</td><td class="p-2.5 font-medium text-slate-600 whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold whitespace-nowrap">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50">${row.resultado_bromatologico||'✓'}</td><td class="p-2.5 text-center bg-white border-l border-r border-slate-100">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white border-r border-slate-100">${renderCeldaMatriz(row.arb_termofilos)}</td><td class="p-2.5 text-center bg-white border-r border-slate-100">${renderCeldaMatriz(row.acido_lacticas)}</td><td class="p-2.5 text-center border-l border-slate-200 bg-amber-50/50">${cResp}</td><td class="p-2.5 text-center font-bold text-emerald-700 text-[10px] whitespace-nowrap border-l border-slate-200">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id_registro}')" class="text-rose-400 hover:bg-rose-100 hover:text-rose-600 p-1.5 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+          return `<tr class="hover:bg-blue-50 border-b"><td class="p-2.5 font-black text-cyan-700">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50">${row.resultado_bromatologico||'✓'}</td><td class="p-2.5 text-center bg-white border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(row.arb_termofilos)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(row.acido_lacticas)}</td><td class="p-2.5 text-center border-l bg-amber-50/50">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id_registro}')" class="text-rose-400 hover:text-rose-600 p-1 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         } else if(filtroProc === 'HTST') {
-          return `<tr class="hover:bg-blue-50/50 border-b transition-colors"><td class="p-2.5 font-black text-blue-800">${row.tipo_proceso}</td><td class="p-2.5 font-medium text-slate-600 whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold whitespace-nowrap">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50">${row.resultado_bromatologico||'✓'}</td><td class="p-2.5 text-center bg-white border-l border-r border-slate-100">${renderCeldaMatriz(row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white border-r border-slate-100">${renderCeldaMatriz(row.e_coli)}</td><td class="p-2.5 text-center bg-white border-r border-slate-100">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white border-r border-slate-100">${renderCeldaMatriz(row.s_aureus)}</td><td class="p-2.5 text-center bg-white border-r border-slate-100">${renderCeldaMatriz(row.enterobacterias)}</td><td class="p-2.5 text-center bg-white border-r border-slate-100">${renderCeldaMatriz(row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l border-slate-200 bg-amber-50/50">${cResp}</td><td class="p-2.5 text-center font-bold text-emerald-700 text-[10px] whitespace-nowrap border-l border-slate-200">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id_registro}')" class="text-rose-400 hover:bg-rose-100 hover:text-rose-600 p-1.5 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+          return `<tr class="hover:bg-blue-50 border-b"><td class="p-2.5 font-black text-blue-800">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50">${row.resultado_bromatologico||'✓'}</td><td class="p-2.5 text-center bg-white border-x">${renderCeldaMatriz(row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(row.e_coli)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(row.s_aureus)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(row.enterobacterias)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id_registro}')" class="text-rose-400 hover:text-rose-600 p-1 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         } else {
-          return `<tr class="hover:bg-blue-50/50 border-b transition-colors"><td class="p-2.5 font-black ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td><td class="p-2.5 font-medium text-slate-600 whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[140px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold whitespace-nowrap">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50">${row.resultado_bromatologico||'✓'}</td><td class="p-2.5 text-center bg-white border-l border-r border-slate-100">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white border-r border-slate-100">${renderCeldaMatriz(esUHT ? row.arb_termofilos : row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white border-r border-slate-100">${renderCeldaMatriz(esUHT ? row.acido_lacticas : row.e_coli)}</td><td class="p-2.5 text-center bg-white border-r border-slate-100">${renderCeldaMatriz(esUHT ? '-' : row.s_aureus)}</td><td class="p-2.5 text-center bg-white border-r border-slate-100">${renderCeldaMatriz(esUHT ? '-' : row.enterobacterias)}</td><td class="p-2.5 text-center bg-white border-r border-slate-100">${renderCeldaMatriz(esUHT ? '-' : row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l border-slate-200 bg-amber-50/50">${cResp}</td><td class="p-2.5 text-center font-bold text-emerald-700 text-[10px] whitespace-nowrap border-l border-slate-200">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id_registro}')" class="text-rose-400 hover:bg-rose-100 hover:text-rose-600 p-1.5 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+          return `<tr class="hover:bg-blue-50 border-b"><td class="p-2.5 font-black ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[140px]">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50">${row.resultado_bromatologico||'✓'}</td><td class="p-2.5 text-center bg-white border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(esUHT ? row.arb_termofilos : row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(esUHT ? row.acido_lacticas : row.e_coli)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(esUHT ? '-' : row.s_aureus)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(esUHT ? '-' : row.enterobacterias)}</td><td class="p-2.5 text-center bg-white border-r">${renderCeldaMatriz(esUHT ? '-' : row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id_registro}')" class="text-rose-400 hover:text-rose-600 p-1 rounded"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         }
       }).join('');
       lucide.createIcons();
     }
 
-    // ================= FUNCIONALIDAD EVALUACIÓN EN VIVO (MODAL) =================
-    function evaluarDictamenModal() {
-      let inputs = Array.from(document.getElementById('gCamposDinamicos').querySelectorAll('input'));
-      let vals = inputs.map(i => i.value);
+    // ================= 4. MODAL DINÁMICO Y VISTA PREVIA EN VIVO =================
+    
+    // El motor que evalúa los campos CADA VEZ QUE TECLAS, actualiza los colores y la mini-matriz
+    function evaluarEnVivoModal() {
+      const esUHT = regActual.tipo_proceso === 'UHT';
+      let objSimulado = { ...regActual }; // Copia para no dañar la tabla principal aún
       
-      // Evaluamos todos los campos del modal
-      let cuarentena = false;
-      let pendiente = false;
-
-      for (let v of vals) {
-          if (esFueraDeNorma(v)) cuarentena = true;
-          if (esPendiente(v)) pendiente = true;
+      objSimulado.resultado_bromatologico = document.getElementById('gBromat').value;
+      if(esUHT) {
+        objSimulado.arb_mesofilos = document.getElementById('gUHT_Meso').value;
+        objSimulado.arb_termofilos = document.getElementById('gUHT_Termo').value;
+        objSimulado.acido_lacticas = document.getElementById('gUHT_Lact').value;
+      } else {
+        objSimulado.coliformes_totales = document.getElementById('gHTST_Colif').value;
+        objSimulado.e_coli = document.getElementById('gHTST_Ecoli').value;
+        objSimulado.arb_mesofilos = document.getElementById('gHTST_Meso').value;
+        objSimulado.s_aureus = document.getElementById('gHTST_Aur').value;
+        objSimulado.enterobacterias = document.getElementById('gHTST_Entero').value;
+        objSimulado.mohos_levaduras = document.getElementById('gHTST_Mohos').value;
       }
+      objSimulado.responsable = document.getElementById('gResp').value;
+      objSimulado.observaciones = document.getElementById('gObs').value;
 
-      let obs = document.getElementById('gObs').value;
-      if(/^\d{1,2}:\d{2}$/.test(obs.trim())) pendiente = true;
-
+      // Evaluamos el estado del objeto simulado
+      let cuarentena = esLoteEnCuarentena(objSimulado);
+      let pendiente = tieneResultadosPendientes(objSimulado);
+      
       const selectDict = document.getElementById('gDictamen');
       const fechaLib = document.getElementById('gFechaLib');
 
+      let estadoVivo = '';
       if (cuarentena) {
+          estadoVivo = 'EN CUARENTENA';
           selectDict.value = 'EN CUARENTENA';
-          selectDict.className = "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800 transition-colors shadow-sm";
-          fechaLib.value = ''; // Borra la fecha si vuelve a cuarentena
+          selectDict.className = "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800 transition-colors cursor-not-allowed pointer-events-none";
+          fechaLib.value = ''; // En cuarentena se borra la fecha
       } else if (pendiente) {
+          estadoVivo = 'PENDIENTE RESULTADOS';
           selectDict.value = 'PENDIENTE RESULTADOS';
-          selectDict.className = "w-full p-2 border-2 border-amber-400 rounded-lg bg-amber-50 font-black text-amber-800 transition-colors shadow-sm";
-          fechaLib.value = ''; // Borra la fecha si falta resultados
+          selectDict.className = "w-full p-2 border-2 border-amber-400 rounded-lg bg-amber-50 font-black text-amber-800 transition-colors cursor-not-allowed pointer-events-none";
+          fechaLib.value = ''; // Si faltan datos, se borra la fecha
       } else {
+          estadoVivo = 'CONFORME LIBERADO';
           selectDict.value = 'CONFORME LIBERADO';
-          selectDict.className = "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800 transition-colors shadow-sm";
-          if(!fechaLib.value) fechaLib.value = new Date().toISOString().substring(0, 10); // Auto-llena la fecha actual
+          selectDict.className = "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800 transition-colors cursor-not-allowed pointer-events-none";
+          if(!fechaLib.value) fechaLib.value = objSimulado.fecha_envio ? String(objSimulado.fecha_envio).substring(0, 10) : new Date().toISOString().substring(0, 10);
       }
+
+      objSimulado.dictamen_final = estadoVivo;
+      objSimulado.fecha_liberacion = (estadoVivo === 'CONFORME LIBERADO') ? fechaLib.value : '';
+
+      // RENDERIZAMOS LA MINI-MATRIZ DE VISTA PREVIA
+      renderizarPreviewMatriz(objSimulado, estadoVivo);
     }
 
+    function renderizarPreviewMatriz(row, estado) {
+      const contenedor = document.getElementById('previewMatrizModal');
+      const esUHT = row.tipo_proceso === 'UHT';
+      
+      let cMeso = renderCeldaMatriz(row.arb_mesofilos);
+      let cTermColif = renderCeldaMatriz(esUHT ? row.arb_termofilos : row.coliformes_totales);
+      let cLactEcoli = renderCeldaMatriz(esUHT ? row.acido_lacticas : row.e_coli);
+      let cAur = renderCeldaMatriz(esUHT ? '-' : row.s_aureus);
+      let cEntero = renderCeldaMatriz(esUHT ? '-' : row.enterobacterias);
+      let cMohos = renderCeldaMatriz(esUHT ? '-' : row.mohos_levaduras);
+      
+      let respFinal = row.responsable;
+      if((!respFinal || respFinal === '/') && /^[A-Za-z]+$/.test(String(row.acido_lacticas||'').trim()) && row.acido_lacticas !== 'PENDIENTE') respFinal = row.acido_lacticas;
+      let cResp = (respFinal && respFinal !== '/') ? `<span class="font-black text-amber-700">${respFinal}</span>` : '<span class="text-slate-300">/</span>';
+      
+      let txtFechaLib = row.fecha_liberacion ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(row.fecha_liberacion).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
+
+      let dictBtn = '';
+      if(estado === 'EN CUARENTENA') dictBtn = `<span class="bg-rose-100 text-rose-800 border-rose-400 px-2 py-1 rounded text-[9px] font-black border">⚠️ CUARENTENA</span>`;
+      else if(estado === 'PENDIENTE RESULTADOS') dictBtn = `<span class="bg-amber-100 text-amber-800 border-amber-400 px-2 py-1 rounded text-[9px] font-black border">⏰ PENDIENTE</span>`;
+      else dictBtn = `<span class="bg-emerald-100 text-emerald-800 border-emerald-400 px-2 py-1 rounded text-[9px] font-black border">✓ LIBERADO</span>`;
+
+      contenedor.innerHTML = `
+        <table class="w-full text-left text-[10px] min-w-[700px]">
+          <thead class="bg-slate-100 text-slate-500 uppercase font-bold border-b">
+            <tr>
+              <th class="p-2 w-10">Proc.</th>
+              <th class="p-2">Producto</th>
+              <th class="p-2 text-center">Brom.</th>
+              <th class="p-2 text-center">Mesóf.</th>
+              <th class="p-2 text-center">${esUHT?'Termóf.':'Colif.'}</th>
+              <th class="p-2 text-center">${esUHT?'Láct.':'E.Coli'}</th>
+              ${!esUHT ? `<th class="p-2 text-center">S.Aur.</th><th class="p-2 text-center">Entero.</th><th class="p-2 text-center">Mohos</th>` : ''}
+              <th class="p-2 text-center border-l bg-amber-50">Resp.</th>
+              <th class="p-2 text-center border-l text-emerald-700">F. Lib.</th>
+              <th class="p-2 text-center">Dictamen</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="bg-blue-50/20">
+              <td class="p-2 font-black ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td>
+              <td class="p-2 font-bold truncate max-w-[120px]" title="${row.producto}">${row.producto}</td>
+              <td class="p-2 text-center font-bold text-slate-500">${row.resultado_bromatologico||'✓'}</td>
+              <td class="p-2 text-center bg-white border-x">${cMeso}</td>
+              <td class="p-2 text-center bg-white border-r">${cTermColif}</td>
+              <td class="p-2 text-center bg-white border-r">${cLactEcoli}</td>
+              ${!esUHT ? `<td class="p-2 text-center bg-white border-r">${cAur}</td><td class="p-2 text-center bg-white border-r">${cEntero}</td><td class="p-2 text-center bg-white border-r">${cMohos}</td>` : ''}
+              <td class="p-2 text-center border-l bg-amber-50/50">${cResp}</td>
+              <td class="p-2 text-center border-l whitespace-nowrap">${txtFechaLib}</td>
+              <td class="p-2 text-center">${dictBtn}</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+    }
+
+    // ABRIR EL MODAL
     function abrirModalGestion(id) {
       regActual = datosGlobales.find(d => d.frontend_id === id);
       if(!regActual) return;
@@ -430,20 +517,20 @@
 
       if(regActual.tipo_proceso === 'UHT') {
         cont.innerHTML = `
-          <div><label class="block mb-1 text-slate-500">Prod/Lib.:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico||'✓'}" class="w-full p-2 border rounded font-bold text-center text-blue-800 focus:border-blue-500"></div>
-          <div><label class="block mb-1 text-slate-500">ARB Mesófilos:</label><input type="text" id="gUHT_Meso" value="${regActual.arb_mesofilos||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800 focus:border-blue-500"></div>
-          <div><label class="block mb-1 text-slate-500">ARB Termófilos:</label><input type="text" id="gUHT_Termo" value="${regActual.arb_termofilos||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800 focus:border-blue-500"></div>
-          <div><label class="block mb-1 text-slate-500">Ácido Lácticas:</label><input type="text" id="gUHT_Lact" value="${valLacticas||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800 focus:border-blue-500"></div>
+          <div><label class="block mb-1 text-slate-500">Bromat.:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico||'✓'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">Mesófilos:</label><input type="text" id="gUHT_Meso" value="${regActual.arb_mesofilos||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">Termófilos:</label><input type="text" id="gUHT_Termo" value="${regActual.arb_termofilos||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">Lácticas:</label><input type="text" id="gUHT_Lact" value="${valLacticas||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800"></div>
         `;
       } else { 
         cont.innerHTML = `
-          <div><label class="block mb-1 text-slate-500">Producción:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico||'✓'}" class="w-full p-2 border rounded font-bold text-center text-blue-800 focus:border-blue-500"></div>
-          <div><label class="block mb-1 text-slate-500">Coliformes:</label><input type="text" id="gHTST_Colif" value="${regActual.coliformes_totales||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800 focus:border-blue-500"></div>
-          <div><label class="block mb-1 text-slate-500">E. Coli:</label><input type="text" id="gHTST_Ecoli" value="${regActual.e_coli||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800 focus:border-blue-500"></div>
-          <div><label class="block mb-1 text-slate-500">Mesófilos:</label><input type="text" id="gHTST_Meso" value="${regActual.arb_mesofilos||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800 focus:border-blue-500"></div>
-          <div><label class="block mb-1 text-slate-500">S. Aureus:</label><input type="text" id="gHTST_Aur" value="${regActual.s_aureus||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800 focus:border-blue-500"></div>
-          <div><label class="block mb-1 text-slate-500">Enterobact.:</label><input type="text" id="gHTST_Entero" value="${regActual.enterobacterias||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800 focus:border-blue-500"></div>
-          <div><label class="block mb-1 text-slate-500">Mohos/Lev.:</label><input type="text" id="gHTST_Mohos" value="${regActual.mohos_levaduras||'/'}" class="w-full p-2 border rounded font-bold text-center text-blue-800 focus:border-blue-500"></div>
+          <div><label class="block mb-1 text-slate-500">Bromat.:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico||'✓'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">Coliformes:</label><input type="text" id="gHTST_Colif" value="${regActual.coliformes_totales||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">E. Coli:</label><input type="text" id="gHTST_Ecoli" value="${regActual.e_coli||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">Mesófilos:</label><input type="text" id="gHTST_Meso" value="${regActual.arb_mesofilos||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">S. Aureus:</label><input type="text" id="gHTST_Aur" value="${regActual.s_aureus||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">Enterobact.:</label><input type="text" id="gHTST_Entero" value="${regActual.enterobacterias||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800"></div>
+          <div><label class="block mb-1 text-slate-500">Mohos/Lev.:</label><input type="text" id="gHTST_Mohos" value="${regActual.mohos_levaduras||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800"></div>
         `;
       }
 
@@ -456,16 +543,20 @@
       document.getElementById('gResp').value = respVal || '';
       document.getElementById('gObs').value = obsFinal;
       
-      // Asignamos el evaluador en vivo a los inputs generados
-      cont.querySelectorAll('input').forEach(inp => inp.addEventListener('input', evaluarDictamenModal));
-      document.getElementById('gObs').addEventListener('input', evaluarDictamenModal);
+      // ESCUCHADORES DE EVENTOS PARA EL "EN VIVO"
+      const campos = cont.querySelectorAll('input');
+      campos.forEach(c => c.addEventListener('input', evaluarEnVivoModal));
+      document.getElementById('gObs').addEventListener('input', evaluarEnVivoModal);
+      document.getElementById('gResp').addEventListener('input', evaluarEnVivoModal);
+      document.getElementById('gFechaLib').addEventListener('input', evaluarEnVivoModal);
 
-      // Ejecutamos la evaluación para dejar el semáforo y fecha listos
-      evaluarDictamenModal();
+      // Lanzamos la evaluación inicial para armar la mini-matriz al abrir el modal
+      evaluarEnVivoModal();
 
       document.getElementById('modalGestion').classList.remove('hidden');
     }
 
+    // GUARDAR EN BD
     async function guardarGestionModal() {
       if(!regActual) return;
       
@@ -497,6 +588,7 @@
       await enviarABaseDeDatos({ action: 'DELETE', id_registro: id });
     }
 
+    // IA y LLAMADAS DE RED (Siguen intactas y blindadas)
     async function procesarArchivo() {
       const input = document.getElementById('fileInput');
       if(!input.files.length) return alert('Selecciona una imagen.');
@@ -515,15 +607,13 @@
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block';
       msg.innerText = 'Analizando matriz con IA...';
-
       try {
         const raw = await toBase64(file);
         const base64Data = raw.split(',')[1];
-        
         const promptText = `Eres un auditor experto FSSC 22000. Analiza la matriz.
         TIPO: Detecta si es "UHT" o "HTST".
         REGLAS INFALIBLES PARA COLUMNAS:
-        1. Valores microbiológicos (Mesófilos, Termófilos, Ácido Lácticas, Coliformes, E.Coli, S.Aureus, Enterobacterias, Mohos) DEBEN CONTENER SOLAMENTE: un número puro, el símbolo "<10", o una barra "/". ¡CERO LETRAS! (A excepción de la palabra PENDIENTE).
+        1. Valores microbiológicos DEBEN CONTENER SOLAMENTE: número, "<10", o "/". ¡CERO LETRAS! (A excepción de la palabra PENDIENTE).
         2. Responsable: Las iniciales "EO", "RO" van SOLAMENTE en la propiedad "responsable".
         
         ESTRUCTURA EXACTA JSON REQUERIDA:
@@ -552,26 +642,18 @@
         const response = await fetch(url, {
           method: 'POST', 
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: file.type || 'image/jpeg', data: base64Data } }] }], 
-            generationConfig: { response_mime_type: "application/json" } 
-          })
+          body: JSON.stringify({ contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: file.type || 'image/jpeg', data: base64Data } }] }], generationConfig: { response_mime_type: "application/json" } })
         });
 
         if(!response.ok) throw new Error(`Error HTTP ${response.status}`);
         const resData = await response.json();
         if(resData.error) throw new Error(resData.error.message);
-
         let rawText = resData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
         let registros = JSON.parse(rawText);
         if(!Array.isArray(registros)) registros = [registros];
         
         const modo = document.getElementById('selectModoCarga').value;
-        registros = registros.map(r => {
-          if(modo !== 'AUTO') r.tipo_proceso = modo;
-          return r;
-        });
-
+        registros = registros.map(r => { if(modo !== 'AUTO') r.tipo_proceso = modo; return r; });
         await enviarABaseDeDatos({ action: 'CREATE', data: registros });
       } catch(e) {
         msg.className = 'mt-2 text-xs text-rose-600 block';
@@ -611,13 +693,11 @@
       datosFiltradosGlobales = datosGlobales.filter(r => {
         const f = r.fecha_envio ? String(r.fecha_envio).split('T')[0] : '';
         const mP = (proc === 'TODOS' || r.tipo_proceso === proc);
-        
         let cumpleEstado = false;
         if(est === 'TODOS') cumpleEstado = true;
         else if(est === 'LIBERADOS') cumpleEstado = (!esLoteEnCuarentena(r) && !tieneResultadosPendientes(r));
         else if(est === 'PENDIENTES') cumpleEstado = (!esLoteEnCuarentena(r) && tieneResultadosPendientes(r));
         else if(est === 'CUARENTENA') cumpleEstado = esLoteEnCuarentena(r);
-
         return mP && cumpleEstado && (!fec || f === fec) && (!prod || r.producto === prod) && (!lote || r.lote === lote);
       });
       paginaActual = 1;
@@ -634,10 +714,7 @@
       document.getElementById('btnSig').disabled = (ini + registrosPorPagina) >= tot;
     }
     
-    function cambiarPagina(d) { 
-      paginaActual += d; 
-      renderPagina(); 
-    }
+    function cambiarPagina(d) { paginaActual += d; renderPagina(); }
   </script>
 </body>
 </html>
