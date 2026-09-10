@@ -15,13 +15,29 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* Animación de Latido para KPIs */
-    @keyframes kpiPop {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.15); }
-      100% { transform: scale(1); }
+    /* Animación de Estallido (Onda Expansiva / Ripple) para KPIs */
+    .kpi-box { position: relative; z-index: 1; }
+    .kpi-box::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: inherit;
+      box-shadow: 0 0 0 0 currentColor; /* Hereda el color del ícono (verde, rojo, etc.) */
+      opacity: 0;
+      pointer-events: none;
+      z-index: -1;
     }
-    .anim-pop { animation: kpiPop 0.4s ease-out; }
+    @keyframes iconBump {
+       0% { transform: scale(1); }
+       20% { transform: scale(1.12); }
+       100% { transform: scale(1); }
+    }
+    @keyframes ripple {
+      0% { box-shadow: 0 0 0 0 currentColor; opacity: 0.4; }
+      100% { box-shadow: 0 0 0 14px currentColor; opacity: 0; }
+    }
+    .anim-burst { animation: iconBump 0.8s ease-out; }
+    .anim-burst::after { animation: ripple 0.8s ease-out; }
 
     /* Transición suave para entrada de Modales */
     @keyframes modalIn {
@@ -57,8 +73,7 @@
     </div>
   </header>
 
-  <!-- EL PADDING pb-32 ASEGURA ESPACIO PARA QUE EL FILTRO DESPLIEGUE HACIA ABAJO -->
-  <main class="max-w-[1400px] mx-auto px-4 py-6 space-y-6 pb-32">
+  <main class="max-w-[1400px] mx-auto px-4 py-6 space-y-6 pb-20">
 
     <!-- CONFIGURACIÓN API KEY -->
     <section id="panelConfig" class="hidden bg-amber-50 border border-amber-200 p-4 rounded-xl space-y-2 modal-anim">
@@ -160,10 +175,21 @@
             <option value="09">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
           </select>
         </div>
-        <div>
+        
+        <!-- CUSTOM DROPDOWN PARA PRODUCTO (Solución definitiva para abrir hacia abajo) -->
+        <div class="relative" id="dropdownProductoContainer">
           <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Producto:</label>
-          <select id="filterProducto" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50 outline-none focus:ring-2 focus:ring-blue-100 max-h-48"></select>
+          <div id="dropdownProductoSelected" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50 outline-none cursor-pointer flex justify-between items-center transition-colors hover:bg-white" onclick="toggleDropdown()">
+            <span id="dropdownText" class="truncate font-medium text-slate-700">Todos los Productos</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400"></i>
+          </div>
+          <!-- La lista flotante forzada a descender con absolute top-full -->
+          <div id="dropdownList" class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg hidden max-h-48 overflow-y-auto top-full">
+            <!-- Se llena por JavaScript -->
+          </div>
+          <input type="hidden" id="filterProducto" value="TODOS">
         </div>
+
         <div>
           <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Estado:</label>
           <select id="filterEstado" onchange="aplicarFiltros()" class="w-full text-xs border border-slate-300 rounded-lg p-2 bg-slate-50 outline-none focus:ring-2 focus:ring-blue-100">
@@ -281,7 +307,7 @@
     </div>
   </div>
 
-  <!-- SCRIPT LÓGICO INTACTO -->
+  <!-- SCRIPT -->
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKUoOy17vZnjqKjk8FnjsM7riy2IyGWOgjKWGBjE5UnJSFdZnLsZoiZi9GeZFQtDfOxQ/exec';
     
@@ -300,6 +326,15 @@
         document.getElementById('keyStatus').innerHTML = '<span class="text-emerald-600 font-bold">✓ Clave guardada activa.</span>';
       }
       document.getElementById('mFecha').value = new Date().toISOString().substring(0, 10);
+    });
+
+    // Cerrar el dropdown personalizado de producto si se hace clic afuera
+    document.addEventListener('click', (e) => {
+      const container = document.getElementById('dropdownProductoContainer');
+      const list = document.getElementById('dropdownList');
+      if(container && list && !container.contains(e.target)) {
+        list.classList.add('hidden');
+      }
     });
 
     function toggleConfig() { document.getElementById('panelConfig').classList.toggle('hidden'); }
@@ -345,7 +380,7 @@
         if(json.status === 'SUCCESS') {
           let rawData = json.data || [];
           
-          // REGLA AÑADIDA: Ordenamiento cronológico estricto (Más reciente primero)
+          // REGLA: Ordenamiento cronológico estricto (Más reciente primero)
           rawData.sort((a, b) => {
             const dA = a.fecha_envio ? new Date(a.fecha_envio).getTime() : 0;
             const dB = b.fecha_envio ? new Date(b.fecha_envio).getTime() : 0;
@@ -413,12 +448,13 @@
       return `<span class="${colorClass}">${v}</span>`;
     }
 
+    // Función para activar la animación de estallido (ripple) en los KPIs
     function animarKPIsVisuales() {
       const boxes = document.querySelectorAll('.kpi-box');
       boxes.forEach(box => {
-        box.classList.remove('anim-pop');
-        void box.offsetWidth; // Forzar reflow para reiniciar la animación
-        box.classList.add('anim-pop');
+        box.classList.remove('anim-burst');
+        void box.offsetWidth; 
+        box.classList.add('anim-burst');
       });
     }
 
@@ -445,7 +481,6 @@
       document.getElementById('kpiConformidad').innerText = conformidad + '%';
       document.getElementById('kpiTasaCuarentena').innerText = tasaCuar + '%';
 
-      // Disparar la animación visual de UX Premium
       animarKPIsVisuales();
     }
 
@@ -503,7 +538,6 @@
 
         let txtFechaLib = (fLib && fLib !== '-' && fLib !== '') ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
 
-        // Hover Premium en Filas (transition-colors bg-blue-50/80)
         let fRowClasses = "hover:bg-blue-50/80 transition-colors duration-150 border-b group";
 
         if(filtroProc === 'UHT') {
@@ -727,7 +761,7 @@
       procesarConIA(input.files[0], key);
     }
 
-    // ================= MOTOR IA INTACTO (GEMINI-3.5-FLASH-LITE ESTABLE) =================
+    // ================= MOTOR IA INTACTO =================
     async function procesarConIA(file, key, intento = 1) {
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block font-bold';
@@ -815,10 +849,27 @@
 
     const toBase64 = file => new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); });
     
-    function poblarFiltrosJerarquicos() {
-      const productos = [...new Set(datosGlobales.map(d => d.producto).filter(Boolean))].sort();
-      document.getElementById('filterProducto').innerHTML = '<option value="">Todos los Productos</option>' + productos.map(x => `<option value="${x}">${x}</option>`).join('');
+    // FUNCIONES DEL NUEVO DROPDOWN PERSONALIZADO
+    function toggleDropdown() {
+      document.getElementById('dropdownList').classList.toggle('hidden');
+    }
 
+    function seleccionarProducto(val, texto) {
+      document.getElementById('filterProducto').value = val;
+      document.getElementById('dropdownText').innerText = texto;
+      document.getElementById('dropdownList').classList.add('hidden');
+      aplicarFiltros();
+    }
+
+    function poblarFiltrosJerarquicos() {
+      // Poblar dropdown personalizado de productos
+      const productos = [...new Set(datosGlobales.map(d => d.producto).filter(Boolean))].sort();
+      const list = document.getElementById('dropdownList');
+      let html = `<div class="p-2 text-xs cursor-pointer hover:bg-blue-50 border-b font-bold text-slate-700 transition-colors" onclick="seleccionarProducto('TODOS', 'Todos los Productos')">Todos los Productos</div>`;
+      html += productos.map(x => `<div class="p-2 text-xs cursor-pointer hover:bg-blue-50 font-medium text-slate-700 border-b border-slate-50 last:border-0 truncate transition-colors" onclick="seleccionarProducto('${x}', '${x}')" title="${x}">${x}</div>`).join('');
+      list.innerHTML = html;
+
+      // Poblar años normal
       const anios = [...new Set(datosGlobales.map(d => {
         if(!d.fecha_envio) return null;
         return String(d.fecha_envio).substring(0, 4);
@@ -844,7 +895,7 @@
         const mProc = (proc === 'TODOS' || r.tipo_proceso === proc);
         const mAnio = (anio === 'TODOS' || anioReg === anio);
         const mMes = (mes === 'TODOS' || mesReg === mes);
-        const mProd = (!prod || r.producto === prod);
+        const mProd = (prod === 'TODOS' || !prod || r.producto === prod);
 
         const loteVal = String(r.lote || '').toLowerCase();
         const prodVal = String(r.producto || '').toLowerCase();
