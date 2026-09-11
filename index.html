@@ -20,7 +20,7 @@
 
     /* =========================================
        MICRO-INTERACCIONES TEMÁTICAS (KPIs)
-       Apuntamos a 'svg' porque Lucide reemplaza la 'i'
+       Apuntamos a 'svg' porque Lucide reemplaza la etiqueta 'i'
        ========================================= */
     /* 1. Pulso Vital (Cuarentena / Alertas) */
     @keyframes heartbeat {
@@ -61,7 +61,6 @@
 
     /* =========================================
        ANIMACIÓN DE ACTUALIZACIÓN (ESTALLIDO/RIPPLE)
-       Aplica al contenedor div (.kpi-box)
        ========================================= */
     .kpi-box { position: relative; z-index: 1; }
     .kpi-box::after {
@@ -370,16 +369,18 @@
     </div>
   </div>
 
-  <!-- SCRIPT -->
+  <!-- SCRIPT CENTRAL -->
   <script>
+    // URL DE GOOGLE APPS SCRIPT
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKUoOy17vZnjqKjk8FnjsM7riy2IyGWOgjKWGBjE5UnJSFdZnLsZoiZi9GeZFQtDfOxQ/exec';
+    const CACHE_KEY = 'HTST_DATA_CACHE'; // Llave para guardar offline
     
     let datosGlobales = [];
     let datosFiltradosGlobales = [];
     let paginaActual = 1;
     const registrosPorPagina = 12;
     let regActual = null;
-    let kpiChartInstance = null; 
+    let kpiChartInstance = null; // Instancia de Chart.js
 
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
@@ -400,6 +401,9 @@
       }
     });
 
+    // =========================================================================
+    // GRÁFICOS: DASHBOARD INTERACTIVO
+    // =========================================================================
     function abrirModalDashboard(tipo) {
       let datosParaGrafico = [];
       let colorGrafico = '';
@@ -467,6 +471,7 @@
     }
 
     function toggleConfig() { document.getElementById('panelConfig').classList.toggle('hidden'); }
+    
     function guardarApiKey() {
       const key = document.getElementById('geminiApiKey').value.trim();
       if(key) {
@@ -476,36 +481,29 @@
       }
     }
 
-    function abrirModalManual() { document.getElementById('modalManual').classList.remove('hidden'); }
-
-    async function guardarRegistroManual() {
-      const esUHT = document.getElementById('mProceso').value === 'UHT';
-      const fechaEnvioHoy = document.getElementById('mFecha').value;
-      const nuevo = [{
-        tipo_proceso: esUHT ? 'UHT' : 'HTST',
-        fecha_envio: fechaEnvioHoy,
-        producto: document.getElementById('mProducto').value || 'Producto Manual',
-        lote: document.getElementById('mLote').value || 'LOTE00',
-        resultado_bromatologico: '✓',
-        coliformes_totales: esUHT ? '/' : '<10',
-        e_coli: '/', resiembra_coliformes: '/',
-        arb_mesofilos: '<10', arb_termofilos: esUHT ? '<10' : '/', acido_lacticas: esUHT ? '<10' : '/',
-        s_aureus: '/', enterobacterias: '/', resiembra_eb: '/', mohos_levaduras: '/',
-        responsable: 'RO', observaciones: '/', dictamen_final: 'CONFORME LIBERADO', fecha_liberacion: fechaEnvioHoy
-      }];
-      document.getElementById('modalManual').classList.add('hidden');
-      await enviarABaseDeDatos({ action: 'CREATE', data: nuevo });
-    }
-
-    async function cargarDatosBD() {
+    // =========================================================================
+    // SISTEMA DE CARGA PRO: EXPONENTIAL BACKOFF + CACHÉ DE RESPALDO (OFFLINE)
+    // =========================================================================
+    async function cargarDatosBD(intento = 1) {
       const tbody = document.getElementById('tablaResultados');
-      if(tbody) {
-          tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-blue-600"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-3"></i><span class="font-bold text-sm">Descargando matriz desde Google Sheets...</span></div></td></tr>`;
+
+      if(tbody && intento === 1) {
+          tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-blue-600"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-3"></i><span class="font-bold text-sm">Descargando matriz segura...</span></div></td></tr>`;
           lucide.createIcons();
       }
+      
       try {
         const res = await fetch(APPS_SCRIPT_URL);
-        const json = await res.json();
+        if(!res.ok) throw new Error(`Servidor ocupado (HTTP ${res.status})`);
+        
+        const text = await res.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch(parseErr) {
+          throw new Error("Respuesta inválida de Google (Sobrecarga temporal)");
+        }
+
         if(json.status === 'SUCCESS') {
           let rawData = json.data || [];
           
@@ -516,18 +514,46 @@
           });
 
           datosGlobales = rawData.map((row, index) => ({ ...row, frontend_id: index }));
+          
+          // GUARDAR EN CACHÉ LOCAL
+          localStorage.setItem(CACHE_KEY, JSON.stringify(datosGlobales));
+
+          // Restaurar título normal si veníamos de un fallo
+          document.getElementById('tituloTablaMatriz').innerHTML = 'Matriz de Resultados Consolidada';
+
           poblarFiltrosJerarquicos(); 
           aplicarFiltros();
+        } else {
+          throw new Error("Error interno en la base de datos.");
         }
       } catch (err) { 
-        console.error("Error BD:", err);
-        if(tbody) {
-            tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-rose-500"><i data-lucide="x-circle" class="w-8 h-8 mb-3"></i><span class="font-bold text-sm">Error al conectar con la base de datos.</span></div></td></tr>`;
+        console.warn(`Intento ${intento} fallido. Razón:`, err.message);
+        
+        if(intento < 3) {
+          // EXPONENTIAL BACKOFF: Espera 1.5s, luego 3s, para no saturar al servidor
+          const tiempoEspera = intento * 1500; 
+          setTimeout(() => cargarDatosBD(intento + 1), tiempoEspera);
+        } else {
+          // SISTEMA DE CONTINGENCIA: Caché Offline
+          const cachedData = localStorage.getItem(CACHE_KEY);
+          
+          if (cachedData) {
+            console.log("Activando Modo de Respaldo Local (Caché)");
+            datosGlobales = JSON.parse(cachedData);
+            document.getElementById('tituloTablaMatriz').innerHTML = 'Matriz de Resultados Consolidada <span class="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-[9px] rounded-full font-bold border border-amber-300">⚠️ Modo Respaldo (Offline)</span>';
+            poblarFiltrosJerarquicos(); 
+            aplicarFiltros();
+          } else if(tbody) {
+            tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-rose-500"><i data-lucide="wifi-off" class="w-8 h-8 mb-3"></i><span class="font-bold text-sm">Servidor fuera de línea y sin caché disponible. Reintenta más tarde.</span></div></td></tr>`;
             lucide.createIcons();
+          }
         }
       }
     }
 
+    // =========================================================================
+    // LÓGICA DE VALIDACIÓN Y EVALUACIÓN
+    // =========================================================================
     function esFueraDeNorma(v) {
       if(!v) return false;
       const val = String(v).trim().toUpperCase();
@@ -576,11 +602,14 @@
       return `<span class="${colorClass}">${v}</span>`;
     }
 
+    // =========================================================================
+    // ACTUALIZACIÓN VISUAL Y RENDERIZADO DE TABLA
+    // =========================================================================
     function animarKPIsVisuales() {
       const boxes = document.querySelectorAll('.kpi-box');
       boxes.forEach(box => {
         box.classList.remove('anim-burst');
-        void box.offsetWidth; 
+        void box.offsetWidth; // Reflow forzar animación
         box.classList.add('anim-burst');
       });
     }
@@ -624,6 +653,7 @@
         return; 
       }
 
+      // Estructurar cabeceras
       if(filtroProc === 'UHT') {
         thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">Termóf.</th><th class="p-2.5 text-center bg-slate-200/50">Lácticas</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
       } else if(filtroProc === 'HTST') {
@@ -632,6 +662,7 @@
         thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">Term(u)<br>Colif(h)</th><th class="p-2.5 text-center bg-slate-200/50">Láct(u)<br>E.Coli(h)</th><th class="p-2.5 text-center bg-slate-200/50">S.Aur.</th><th class="p-2.5 text-center bg-slate-200/50">Entero.</th><th class="p-2.5 text-center bg-slate-200/50">Mohos</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
       }
 
+      // Estructurar filas
       tbody.innerHTML = datos.map(row => {
         const esUHT = row.tipo_proceso === 'UHT';
         const cuarentena = esLoteEnCuarentena(row);
@@ -674,7 +705,34 @@
           return `<tr class="${fRowClasses}"><td class="p-2.5 font-black ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[140px]">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.arb_termofilos : row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.acido_lacticas : row.e_coli)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.enterobacterias)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id_registro}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         }
       }).join('');
+      
       lucide.createIcons();
+    }
+
+    // =========================================================================
+    // MODALES Y ACTUALIZACIONES DE REGISTRO
+    // =========================================================================
+    function abrirModalManual() { 
+      document.getElementById('modalManual').classList.remove('hidden'); 
+    }
+
+    async function guardarRegistroManual() {
+      const esUHT = document.getElementById('mProceso').value === 'UHT';
+      const fechaEnvioHoy = document.getElementById('mFecha').value;
+      const nuevo = [{
+        tipo_proceso: esUHT ? 'UHT' : 'HTST',
+        fecha_envio: fechaEnvioHoy,
+        producto: document.getElementById('mProducto').value || 'Producto Manual',
+        lote: document.getElementById('mLote').value || 'LOTE00',
+        resultado_bromatologico: '✓',
+        coliformes_totales: esUHT ? '/' : '<10',
+        e_coli: '/', resiembra_coliformes: '/',
+        arb_mesofilos: '<10', arb_termofilos: esUHT ? '<10' : '/', acido_lacticas: esUHT ? '<10' : '/',
+        s_aureus: '/', enterobacterias: '/', resiembra_eb: '/', mohos_levaduras: '/',
+        responsable: 'RO', observaciones: '/', dictamen_final: 'CONFORME LIBERADO', fecha_liberacion: fechaEnvioHoy
+      }];
+      document.getElementById('modalManual').classList.add('hidden');
+      await enviarABaseDeDatos({ action: 'CREATE', data: nuevo });
     }
 
     function evaluarEnVivoModal() {
@@ -873,6 +931,9 @@
       await enviarABaseDeDatos({ action: 'DELETE', id_registro: id });
     }
 
+    // =========================================================================
+    // INTELIGENCIA ARTIFICIAL Y COMUNICACIÓN CON BASE DE DATOS
+    // =========================================================================
     async function procesarArchivo() {
       const input = document.getElementById('fileInput');
       if(!input.files.length) return alert('Selecciona una imagen.');
@@ -959,21 +1020,30 @@
 
     async function enviarABaseDeDatos(payload) {
       const msg = document.getElementById('statusMessage');
-      msg.className = 'mt-2 text-xs text-blue-600 block font-bold';
-      msg.innerHTML = `<i data-lucide="cloud-lightning" class="w-3 h-3 inline mr-1"></i>Sincronizando datos con Google Sheets...`;
-      lucide.createIcons();
+      if(msg) {
+        msg.className = 'mt-2 text-xs text-blue-600 block font-bold';
+        msg.innerHTML = `<i data-lucide="cloud-lightning" class="w-3 h-3 inline mr-1"></i>Sincronizando datos con Google Sheets...`;
+        lucide.createIcons();
+      }
       try {
         await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-        msg.className = 'mt-2 text-xs text-emerald-600 block font-bold';
-        msg.innerHTML = '<i data-lucide="check-circle-2" class="w-3 h-3 inline mr-1"></i>Matriz guardada exitosamente.';
-        lucide.createIcons();
+        if(msg) {
+          msg.className = 'mt-2 text-xs text-emerald-600 block font-bold';
+          msg.innerHTML = '<i data-lucide="check-circle-2" class="w-3 h-3 inline mr-1"></i>Matriz guardada exitosamente.';
+          lucide.createIcons();
+        }
         document.getElementById('fileInput').value = '';
-        setTimeout(() => cargarDatosBD(), 1200);
-      } catch(err) { msg.innerText = 'Error al enviar a la nube.'; }
+        setTimeout(() => cargarDatosBD(), 1200); // Forzamos recarga
+      } catch(err) { 
+        if(msg) msg.innerText = 'Error al enviar a la nube.'; 
+      }
     }
 
     const toBase64 = file => new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); });
     
+    // =========================================================================
+    // FILTROS, BÚSQUEDA Y PAGINACIÓN
+    // =========================================================================
     function toggleDropdown() {
       document.getElementById('dropdownList').classList.toggle('hidden');
     }
