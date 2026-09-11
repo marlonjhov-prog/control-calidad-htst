@@ -8,7 +8,8 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- LIBRERÍA PARA DASHBOARDS INTERACTIVOS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- PROVEEDOR DE ÍCONOS BLINDADO (JSDELIVR) PARA EVITAR CAÍDAS -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
   
   <style>
     /* SCROLLBAR PREMIUM */
@@ -19,6 +20,7 @@
 
     /* =========================================
        MICRO-INTERACCIONES TEMÁTICAS (KPIs)
+       Apuntamos a 'svg' porque Lucide reemplaza la 'i'
        ========================================= */
     /* 1. Pulso Vital (Cuarentena / Alertas) */
     @keyframes heartbeat {
@@ -27,35 +29,62 @@
       30% { transform: scale(1); }
       45% { transform: scale(1.15); }
     }
-    .anim-heartbeat i { animation: heartbeat 2.5s ease-in-out infinite; }
+    .anim-heartbeat svg { animation: heartbeat 2.5s ease-in-out infinite; }
 
     /* 2. Péndulo (Reloj / Pendientes) */
     @keyframes pendulum {
       0%, 100% { transform: rotate(-15deg); }
       50% { transform: rotate(15deg); }
     }
-    .anim-pendulum i { transform-origin: top center; animation: pendulum 2s ease-in-out infinite; }
+    .anim-pendulum svg { transform-origin: top center; animation: pendulum 2s ease-in-out infinite; }
 
     /* 3. Flote Elástico (Liberados / Check) */
     @keyframes floatBounce {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-4px); }
     }
-    .anim-float i { animation: floatBounce 2.5s ease-in-out infinite; }
+    .anim-float svg { animation: floatBounce 2.5s ease-in-out infinite; }
 
     /* 4. Apilamiento (Total Lotes / Capas) */
     @keyframes layerStack {
       0%, 100% { transform: translateY(0) scale(1); }
       50% { transform: translateY(-2px) scale(1.05); }
     }
-    .anim-stack i { animation: layerStack 2.5s ease-in-out infinite; }
+    .anim-stack svg { animation: layerStack 2.5s ease-in-out infinite; }
 
     /* 5. Resplandor (Conformidad) */
     @keyframes shine {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.6; }
     }
-    .anim-shine i { animation: shine 2.5s ease-in-out infinite; }
+    .anim-shine svg { animation: shine 2.5s ease-in-out infinite; }
+
+    /* =========================================
+       ANIMACIÓN DE ACTUALIZACIÓN (ESTALLIDO/RIPPLE)
+       Aplica al contenedor div (.kpi-box)
+       ========================================= */
+    .kpi-box { position: relative; z-index: 1; }
+    .kpi-box::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: inherit;
+      box-shadow: 0 0 0 0 currentColor;
+      opacity: 0;
+      pointer-events: none;
+      z-index: -1;
+    }
+    @keyframes containerBump {
+       0% { transform: scale(1); }
+       20% { transform: scale(1.1); }
+       100% { transform: scale(1); }
+    }
+    @keyframes ripple {
+      0% { box-shadow: 0 0 0 0 currentColor; opacity: 0.4; }
+      100% { box-shadow: 0 0 0 12px currentColor; opacity: 0; }
+    }
+    .anim-burst { animation: containerBump 0.8s ease-out; }
+    .anim-burst::after { animation: ripple 0.8s ease-out; }
 
     /* Transición suave para entrada de Modales */
     @keyframes modalIn {
@@ -116,28 +145,28 @@
           <p class="text-[9px] uppercase font-bold text-slate-400 group-hover:text-blue-600 transition-colors">Total Lotes</p>
           <h3 id="kpiTotal" class="text-lg font-black text-slate-800">0</h3>
         </div>
-        <div class="bg-blue-50 p-2.5 rounded-lg text-blue-600 anim-stack"><i data-lucide="layers" class="w-4 h-4"></i></div>
+        <div class="bg-blue-50 p-2.5 rounded-lg text-blue-600 anim-stack kpi-box"><i data-lucide="layers" class="w-4 h-4"></i></div>
       </div>
       <div onclick="abrirModalDashboard('LIBERADOS')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-emerald-300 cursor-pointer group">
         <div>
           <p class="text-[9px] uppercase font-bold text-emerald-600">Liberados</p>
           <h3 id="kpiLiberados" class="text-lg font-black text-emerald-700">0</h3>
         </div>
-        <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-600 anim-float"><i data-lucide="check-circle-2" class="w-4 h-4"></i></div>
+        <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-600 anim-float kpi-box"><i data-lucide="check-circle-2" class="w-4 h-4"></i></div>
       </div>
       <div onclick="abrirModalDashboard('PENDIENTES')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-amber-300 cursor-pointer group">
         <div>
           <p class="text-[9px] uppercase font-bold text-amber-600">Pendientes</p>
           <h3 id="kpiPendientes" class="text-lg font-black text-amber-600">0</h3>
         </div>
-        <div class="bg-amber-50 p-2.5 rounded-lg text-amber-600 anim-pendulum"><i data-lucide="clock" class="w-4 h-4"></i></div>
+        <div class="bg-amber-50 p-2.5 rounded-lg text-amber-600 anim-pendulum kpi-box"><i data-lucide="clock" class="w-4 h-4"></i></div>
       </div>
       <div onclick="abrirModalDashboard('CUARENTENA')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-rose-300 cursor-pointer group">
         <div>
           <p class="text-[9px] uppercase font-bold text-rose-600">En Cuarentena</p>
           <h3 id="kpiCuarentena" class="text-lg font-black text-rose-600">0</h3>
         </div>
-        <div class="bg-rose-50 p-2.5 rounded-lg text-rose-600 anim-heartbeat"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div>
+        <div class="bg-rose-50 p-2.5 rounded-lg text-rose-600 anim-heartbeat kpi-box"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div>
       </div>
       <!-- Métricas porcentuales estáticas -->
       <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between bg-gradient-to-br from-emerald-50/40 to-white transition-all">
@@ -145,14 +174,14 @@
           <p class="text-[9px] uppercase font-bold text-emerald-700">Conformidad Directa</p>
           <h3 id="kpiConformidad" class="text-lg font-black text-emerald-800">100%</h3>
         </div>
-        <div class="bg-emerald-100 p-2.5 rounded-lg text-emerald-700 anim-shine"><i data-lucide="award" class="w-4 h-4"></i></div>
+        <div class="bg-emerald-100 p-2.5 rounded-lg text-emerald-700 anim-shine kpi-box"><i data-lucide="award" class="w-4 h-4"></i></div>
       </div>
       <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between bg-gradient-to-br from-rose-50/40 to-white transition-all">
         <div>
           <p class="text-[9px] uppercase font-bold text-rose-700">Tasa Cuarentena</p>
           <h3 id="kpiTasaCuarentena" class="text-lg font-black text-rose-800">0%</h3>
         </div>
-        <div class="bg-rose-100 p-2.5 rounded-lg text-rose-700 anim-heartbeat"><i data-lucide="activity" class="w-4 h-4"></i></div>
+        <div class="bg-rose-100 p-2.5 rounded-lg text-rose-700 anim-heartbeat kpi-box"><i data-lucide="activity" class="w-4 h-4"></i></div>
       </div>
     </section>
 
@@ -350,7 +379,7 @@
     let paginaActual = 1;
     const registrosPorPagina = 12;
     let regActual = null;
-    let kpiChartInstance = null; // Instancia global para los gráficos
+    let kpiChartInstance = null; 
 
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
@@ -371,33 +400,29 @@
       }
     });
 
-    // ==========================================
-    // NUEVA FUNCIÓN PARA LOS DASHBOARDS DE KPI
-    // ==========================================
     function abrirModalDashboard(tipo) {
       let datosParaGrafico = [];
       let colorGrafico = '';
       let tituloEtiqueta = '';
       
-      // Filtrar directamente desde los datos que ya están en pantalla
       if(tipo === 'TOTAL') { 
           datosParaGrafico = datosFiltradosGlobales; 
-          colorGrafico = '#3b82f6'; // Azul
+          colorGrafico = '#3b82f6'; 
           tituloEtiqueta = 'Total Lotes Procesados'; 
       }
       else if(tipo === 'LIBERADOS') { 
           datosParaGrafico = datosFiltradosGlobales.filter(r => !esLoteEnCuarentena(r) && !tieneResultadosPendientes(r)); 
-          colorGrafico = '#10b981'; // Verde
+          colorGrafico = '#10b981'; 
           tituloEtiqueta = 'Lotes Liberados (Conformes)'; 
       }
       else if(tipo === 'PENDIENTES') { 
           datosParaGrafico = datosFiltradosGlobales.filter(r => !esLoteEnCuarentena(r) && tieneResultadosPendientes(r)); 
-          colorGrafico = '#f59e0b'; // Ámbar
+          colorGrafico = '#f59e0b'; 
           tituloEtiqueta = 'Lotes Pendientes de Resultados'; 
       }
       else if(tipo === 'CUARENTENA') { 
           datosParaGrafico = datosFiltradosGlobales.filter(r => esLoteEnCuarentena(r)); 
-          colorGrafico = '#e11d48'; // Rojo/Rose
+          colorGrafico = '#e11d48'; 
           tituloEtiqueta = 'Lotes en Cuarentena Histórica'; 
       }
       else return;
@@ -405,7 +430,6 @@
       document.getElementById('dashTitle').innerHTML = `<i data-lucide="bar-chart-2" class="w-6 h-6 text-slate-600"></i> Tendencia Analítica: ${tituloEtiqueta}`;
       lucide.createIcons();
 
-      // Lógica matemática: Agrupar por Mes (YYYY-MM)
       const conteoPorMes = {};
       datosParaGrafico.forEach(d => {
           let fechaCompleta = d.fecha_envio || d.fecha_liberacion || '';
@@ -413,10 +437,9 @@
           conteoPorMes[mes] = (conteoPorMes[mes] || 0) + 1;
       });
       
-      const etiquetasMeses = Object.keys(conteoPorMes).sort(); // Ejes X
-      const valoresSuma = etiquetasMeses.map(e => conteoPorMes[e]); // Ejes Y
+      const etiquetasMeses = Object.keys(conteoPorMes).sort(); 
+      const valoresSuma = etiquetasMeses.map(e => conteoPorMes[e]); 
 
-      // Si existe un gráfico anterior, destruirlo para no sobrecargar la memoria
       if (kpiChartInstance) { kpiChartInstance.destroy(); }
       
       const ctx = document.getElementById('kpiChartCanvas').getContext('2d');
@@ -553,6 +576,15 @@
       return `<span class="${colorClass}">${v}</span>`;
     }
 
+    function animarKPIsVisuales() {
+      const boxes = document.querySelectorAll('.kpi-box');
+      boxes.forEach(box => {
+        box.classList.remove('anim-burst');
+        void box.offsetWidth; 
+        box.classList.add('anim-burst');
+      });
+    }
+
     function actualizarKPIs(listaDatos) {
       const total = listaDatos.length;
       let liberados = 0;
@@ -575,6 +607,8 @@
 
       document.getElementById('kpiConformidad').innerText = conformidad + '%';
       document.getElementById('kpiTasaCuarentena').innerText = tasaCuar + '%';
+
+      animarKPIsVisuales();
     }
 
     function renderTabla(datos) {
@@ -906,4 +940,114 @@
         const resData = await response.json();
         if(resData.error) throw new Error(resData.error.message);
         
-        let rawText = resData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/
+        let rawText = resData.candidates[0].content.parts[0].text.replace(/```json/g, '').replace(/```/g, '').trim();
+        let registros = JSON.parse(rawText);
+        if(!Array.isArray(registros)) registros = [registros];
+        
+        const modo = document.getElementById('selectModoCarga').value;
+        registros = registros.map(r => { if(modo !== 'AUTO') r.tipo_proceso = modo; return r; });
+        await enviarABaseDeDatos({ action: 'CREATE', data: registros });
+      } catch(e) {
+        if(e.message.includes('503') && intento < 3) {
+          await new Promise(r => setTimeout(r, 2000));
+          return procesarConIA(file, key, intento + 1);
+        }
+        msg.className = 'mt-2 text-xs text-rose-600 block';
+        msg.innerText = 'Error de lectura IA: ' + e.message;
+      }
+    }
+
+    async function enviarABaseDeDatos(payload) {
+      const msg = document.getElementById('statusMessage');
+      msg.className = 'mt-2 text-xs text-blue-600 block font-bold';
+      msg.innerHTML = `<i data-lucide="cloud-lightning" class="w-3 h-3 inline mr-1"></i>Sincronizando datos con Google Sheets...`;
+      lucide.createIcons();
+      try {
+        await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        msg.className = 'mt-2 text-xs text-emerald-600 block font-bold';
+        msg.innerHTML = '<i data-lucide="check-circle-2" class="w-3 h-3 inline mr-1"></i>Matriz guardada exitosamente.';
+        lucide.createIcons();
+        document.getElementById('fileInput').value = '';
+        setTimeout(() => cargarDatosBD(), 1200);
+      } catch(err) { msg.innerText = 'Error al enviar a la nube.'; }
+    }
+
+    const toBase64 = file => new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); });
+    
+    function toggleDropdown() {
+      document.getElementById('dropdownList').classList.toggle('hidden');
+    }
+
+    function seleccionarProducto(val, texto) {
+      document.getElementById('filterProducto').value = val;
+      document.getElementById('dropdownText').innerText = texto;
+      document.getElementById('dropdownList').classList.add('hidden');
+      aplicarFiltros();
+    }
+
+    function poblarFiltrosJerarquicos() {
+      const productos = [...new Set(datosGlobales.map(d => d.producto).filter(Boolean))].sort();
+      const list = document.getElementById('dropdownList');
+      let html = `<div class="p-2 text-xs cursor-pointer hover:bg-blue-50 border-b font-bold text-slate-700 transition-colors" onclick="seleccionarProducto('TODOS', 'Todos los Productos')">Todos los Productos</div>`;
+      html += productos.map(x => `<div class="p-2 text-xs cursor-pointer hover:bg-blue-50 font-medium text-slate-700 border-b border-slate-50 last:border-0 truncate transition-colors" onclick="seleccionarProducto('${x}', '${x}')" title="${x}">${x}</div>`).join('');
+      list.innerHTML = html;
+
+      const anios = [...new Set(datosGlobales.map(d => {
+        if(!d.fecha_envio) return null;
+        return String(d.fecha_envio).substring(0, 4);
+      }).filter(Boolean))].sort().reverse();
+
+      const selectAnio = document.getElementById('filterAnio');
+      selectAnio.innerHTML = '<option value="TODOS">Todos los Años</option>' + anios.map(a => `<option value="${a}">${a}</option>`).join('');
+    }
+
+    function aplicarFiltros() {
+      const proc = document.getElementById('filterProceso').value;
+      const anio = document.getElementById('filterAnio').value;
+      const mes = document.getElementById('filterMes').value;
+      const prod = document.getElementById('filterProducto').value;
+      const est = document.getElementById('filterEstado').value;
+      const textoBusqueda = document.getElementById('busquedaTexto').value.trim().toLowerCase();
+
+      datosFiltradosGlobales = datosGlobales.filter(r => {
+        const fechaStr = r.fecha_envio ? String(r.fecha_envio) : '';
+        const anioReg = fechaStr.substring(0, 4);
+        const mesReg = fechaStr.substring(5, 7);
+
+        const mProc = (proc === 'TODOS' || r.tipo_proceso === proc);
+        const mAnio = (anio === 'TODOS' || anioReg === anio);
+        const mMes = (mes === 'TODOS' || mesReg === mes);
+        const mProd = (prod === 'TODOS' || !prod || r.producto === prod);
+
+        const loteVal = String(r.lote || '').toLowerCase();
+        const prodVal = String(r.producto || '').toLowerCase();
+        const mTexto = (!textoBusqueda || loteVal.includes(textoBusqueda) || prodVal.includes(textoBusqueda));
+
+        let cumpleEstado = false;
+        if(est === 'TODOS') cumpleEstado = true;
+        else if(est === 'LIBERADOS') cumpleEstado = (!esLoteEnCuarentena(r) && !tieneResultadosPendientes(r));
+        else if(est === 'PENDIENTES') cumpleEstado = (!esLoteEnCuarentena(r) && tieneResultadosPendientes(r));
+        else if(est === 'CUARENTENA') cumpleEstado = esLoteEnCuarentena(r);
+
+        return mProc && mAnio && mMes && mProd && mTexto && cumpleEstado;
+      });
+
+      actualizarKPIs(datosFiltradosGlobales);
+      paginaActual = 1;
+      document.getElementById('kpiCount').innerText = `${datosFiltradosGlobales.length} registros`;
+      renderPagina(); 
+    }
+
+    function renderPagina() {
+      const ini = (paginaActual - 1) * registrosPorPagina;
+      renderTabla(datosFiltradosGlobales.slice(ini, ini + registrosPorPagina));
+      const tot = datosFiltradosGlobales.length;
+      document.getElementById('infoPaginacion').innerText = `Mostrando ${tot===0?0:ini+1} al ${Math.min(ini+registrosPorPagina, tot)} de ${tot}`;
+      document.getElementById('btnAnt').disabled = paginaActual === 1;
+      document.getElementById('btnSig').disabled = (ini + registrosPorPagina) >= tot;
+    }
+    
+    function cambiarPagina(d) { paginaActual += d; renderPagina(); }
+  </script>
+</body>
+</html>
