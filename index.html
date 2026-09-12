@@ -16,66 +16,50 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    @keyframes heartbeat {
-      0%, 100% { transform: scale(1); }
-      15% { transform: scale(1.15); }
-      30% { transform: scale(1); }
-      45% { transform: scale(1.15); }
-    }
+    /* ANIMACIONES KPI */
+    @keyframes heartbeat { 0%, 100% { transform: scale(1); } 15% { transform: scale(1.15); } 30% { transform: scale(1); } 45% { transform: scale(1.15); } }
     .anim-heartbeat svg { animation: heartbeat 2.5s ease-in-out infinite; }
-
-    @keyframes pendulum {
-      0%, 100% { transform: rotate(-15deg); }
-      50% { transform: rotate(15deg); }
-    }
+    @keyframes pendulum { 0%, 100% { transform: rotate(-15deg); } 50% { transform: rotate(15deg); } }
     .anim-pendulum svg { transform-origin: top center; animation: pendulum 2s ease-in-out infinite; }
-
-    @keyframes floatBounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
-    }
+    @keyframes floatBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
     .anim-float svg { animation: floatBounce 2.5s ease-in-out infinite; }
-
-    @keyframes layerStack {
-      0%, 100% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-2px) scale(1.05); }
-    }
+    @keyframes layerStack { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-2px) scale(1.05); } }
     .anim-stack svg { animation: layerStack 2.5s ease-in-out infinite; }
-
-    @keyframes shine {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
+    @keyframes shine { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
     .anim-shine svg { animation: shine 2.5s ease-in-out infinite; }
 
     .kpi-box { position: relative; z-index: 1; }
-    .kpi-box::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      border-radius: inherit;
-      box-shadow: 0 0 0 0 currentColor;
-      opacity: 0;
-      pointer-events: none;
-      z-index: -1;
-    }
-    @keyframes containerBump {
-       0% { transform: scale(1); }
-       20% { transform: scale(1.1); }
-       100% { transform: scale(1); }
-    }
-    @keyframes ripple {
-      0% { box-shadow: 0 0 0 0 currentColor; opacity: 0.4; }
-      100% { box-shadow: 0 0 0 12px currentColor; opacity: 0; }
-    }
+    .kpi-box::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: inherit; box-shadow: 0 0 0 0 currentColor; opacity: 0; pointer-events: none; z-index: -1; }
+    @keyframes containerBump { 0% { transform: scale(1); } 20% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    @keyframes ripple { 0% { box-shadow: 0 0 0 0 currentColor; opacity: 0.4; } 100% { box-shadow: 0 0 0 12px currentColor; opacity: 0; } }
     .anim-burst { animation: containerBump 0.8s ease-out; }
     .anim-burst::after { animation: ripple 0.8s ease-out; }
 
-    @keyframes modalIn {
-      from { opacity: 0; transform: translateY(15px) scale(0.97); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(15px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
     .modal-anim { animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    /* CUBOS 3D ELEGANTES */
+    .cube-wrapper { width: 44px; height: 44px; perspective: 800px; margin: 0 auto; }
+    .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; animation: spinCube 2s infinite linear; }
+    .cube div { position: absolute; width: 44px; height: 44px; background: rgba(37, 99, 235, 0.8); border: 2px solid #fff; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); }
+    .cube .front  { transform: translateZ(22px); }
+    .cube .back   { transform: rotateY(180deg) translateZ(22px); }
+    .cube .right  { transform: rotateY(90deg) translateZ(22px); }
+    .cube .left   { transform: rotateY(-90deg) translateZ(22px); }
+    .cube .top    { transform: rotateX(90deg) translateZ(22px); }
+    .cube .bottom { transform: rotateX(-90deg) translateZ(22px); }
+    @keyframes spinCube { 0% { transform: rotateX(0deg) rotateY(0deg); } 100% { transform: rotateX(360deg) rotateY(360deg); } }
+
+    /* CUBO 3D MINI PARA TEXTO */
+    .cube-mini-wrapper { width: 16px; height: 16px; perspective: 400px; display: inline-block; vertical-align: middle; }
+    .cube-mini { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; animation: spinCube 2s infinite linear; }
+    .cube-mini div { position: absolute; width: 16px; height: 16px; background: rgba(37, 99, 235, 0.9); border: 1px solid #fff; }
+    .cube-mini .front  { transform: translateZ(8px); }
+    .cube-mini .back   { transform: rotateY(180deg) translateZ(8px); }
+    .cube-mini .right  { transform: rotateY(90deg) translateZ(8px); }
+    .cube-mini .left   { transform: rotateY(-90deg) translateZ(8px); }
+    .cube-mini .top    { transform: rotateX(90deg) translateZ(8px); }
+    .cube-mini .bottom { transform: rotateX(-90deg) translateZ(8px); }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans">
@@ -87,7 +71,7 @@
         <i data-lucide="shield-check" class="w-7 h-7 text-emerald-400"></i>
         <div>
           <h1 class="text-lg font-bold leading-tight">App Calidad | HTST & UHT</h1>
-          <p class="text-[10px] text-blue-200">Liberación de Lotes - Motor SQL server</p>
+          <p class="text-[10px] text-blue-200">Liberación FSSC 22000 - Motor Supabase SQL</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -122,14 +106,24 @@
     </section>
 
     <!-- DASHBOARD DE KPIS -->
-    <section class="grid grid-cols-2 md:grid-cols-6 gap-3">
+    <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <!-- KPI 1: LOTES BASE -->
+      <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-indigo-300 group">
+        <div>
+          <p class="text-[9px] uppercase font-bold text-indigo-500 transition-colors">Lotes Base (Días)</p>
+          <h3 id="kpiLotesBase" class="text-lg font-black text-indigo-800">0</h3>
+        </div>
+        <div class="bg-indigo-50 p-2.5 rounded-lg text-indigo-600 anim-stack kpi-box"><i data-lucide="calendar" class="w-4 h-4"></i></div>
+      </div>
+      <!-- KPI 2: TOTAL REGISTROS -->
       <div onclick="abrirModalDashboard('TOTAL')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-blue-300 cursor-pointer group">
         <div>
-          <p class="text-[9px] uppercase font-bold text-slate-400 group-hover:text-blue-600 transition-colors">Total Lotes</p>
+          <p class="text-[9px] uppercase font-bold text-slate-400 group-hover:text-blue-600 transition-colors">Total Registros</p>
           <h3 id="kpiTotal" class="text-lg font-black text-slate-800">0</h3>
         </div>
         <div class="bg-blue-50 p-2.5 rounded-lg text-blue-600 anim-stack kpi-box"><i data-lucide="layers" class="w-4 h-4"></i></div>
       </div>
+      <!-- KPI 3: LIBERADOS -->
       <div onclick="abrirModalDashboard('LIBERADOS')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-emerald-300 cursor-pointer group">
         <div>
           <p class="text-[9px] uppercase font-bold text-emerald-600">Liberados</p>
@@ -137,6 +131,7 @@
         </div>
         <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-600 anim-float kpi-box"><i data-lucide="check-circle-2" class="w-4 h-4"></i></div>
       </div>
+      <!-- KPI 4: PENDIENTES -->
       <div onclick="abrirModalDashboard('PENDIENTES')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-amber-300 cursor-pointer group">
         <div>
           <p class="text-[9px] uppercase font-bold text-amber-600">Pendientes</p>
@@ -144,6 +139,7 @@
         </div>
         <div class="bg-amber-50 p-2.5 rounded-lg text-amber-600 anim-pendulum kpi-box"><i data-lucide="clock" class="w-4 h-4"></i></div>
       </div>
+      <!-- KPI 5: CUARENTENA -->
       <div onclick="abrirModalDashboard('CUARENTENA')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-rose-300 cursor-pointer group">
         <div>
           <p class="text-[9px] uppercase font-bold text-rose-600">En Cuarentena</p>
@@ -151,6 +147,7 @@
         </div>
         <div class="bg-rose-50 p-2.5 rounded-lg text-rose-600 anim-heartbeat kpi-box"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div>
       </div>
+      <!-- KPI 6: CONFORMIDAD DIRECTA -->
       <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between bg-gradient-to-br from-emerald-50/40 to-white transition-all">
         <div>
           <p class="text-[9px] uppercase font-bold text-emerald-700">Conformidad Directa</p>
@@ -158,20 +155,13 @@
         </div>
         <div class="bg-emerald-100 p-2.5 rounded-lg text-emerald-700 anim-shine kpi-box"><i data-lucide="award" class="w-4 h-4"></i></div>
       </div>
-      <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between bg-gradient-to-br from-rose-50/40 to-white transition-all">
-        <div>
-          <p class="text-[9px] uppercase font-bold text-rose-700">Tasa Cuarentena</p>
-          <h3 id="kpiTasaCuarentena" class="text-lg font-black text-rose-800">0%</h3>
-        </div>
-        <div class="bg-rose-100 p-2.5 rounded-lg text-rose-700 anim-heartbeat kpi-box"><i data-lucide="activity" class="w-4 h-4"></i></div>
-      </div>
     </section>
 
     <!-- CARGA DE IMÁGENES -->
     <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
       <div class="flex justify-between items-center mb-3">
           <h2 class="text-sm font-semibold text-slate-800 flex items-center gap-2">
-            <i data-lucide="upload-cloud" class="w-4 h-4 text-blue-600"></i> Detección Estricta por IA
+            <i data-lucide="upload-cloud" class="w-4 h-4 text-blue-600"></i> Detección Estricta por IA <span class="bg-indigo-100 text-indigo-700 text-[9px] px-2 py-0.5 rounded ml-1">Control Duplicidad Activo</span>
           </h2>
           <select id="selectModoCarga" class="text-xs border rounded p-1 bg-slate-50 font-bold text-slate-600 outline-none focus:ring-2 focus:ring-blue-100">
             <option value="AUTO">🤖 Detección Automática</option><option value="HTST">Forzar HTST</option><option value="UHT">Forzar UHT</option>
@@ -183,7 +173,7 @@
           <i data-lucide="cpu" class="w-4 h-4"></i> Analizar con IA
         </button>
       </div>
-      <div id="statusMessage" class="mt-2 text-xs hidden font-bold"></div>
+      <div id="statusMessage" class="mt-3 text-xs hidden font-bold rounded p-2 border"></div>
     </section>
 
     <!-- FILTROS Y BUSCADOR -->
@@ -229,7 +219,7 @@
         <div>
           <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Búsqueda Rápida:</label>
           <div class="relative">
-            <input type="text" id="busquedaTexto" oninput="aplicarFiltros()" placeholder="Buscar Lote o Producto..." class="w-full text-xs border border-slate-300 rounded-lg p-2 pl-7 bg-slate-50 font-medium outline-none focus:ring-2 focus:ring-blue-100">
+            <input type="text" id="busquedaTexto" oninput="aplicarFiltros()" placeholder="Ej: L6142, L6142NO..." class="w-full text-xs border border-slate-300 rounded-lg p-2 pl-7 bg-slate-50 font-medium outline-none focus:ring-2 focus:ring-blue-100">
             <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5"></i>
           </div>
         </div>
@@ -247,10 +237,13 @@
           <thead id="tablaCabecera" class="bg-slate-100 text-slate-500 uppercase font-bold border-b text-[10px]"></thead>
           <tbody id="tablaResultados" class="divide-y divide-slate-100">
             <tr>
-              <td colspan="15" class="py-16 text-center">
-                <div class="flex flex-col items-center justify-center text-blue-600">
-                  <i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-3"></i>
-                  <span class="font-bold text-sm">Conectando con Supabase SQL...</span>
+              <td colspan="15" class="py-20 text-center">
+                <div class="flex flex-col items-center justify-center text-blue-600 space-y-4">
+                  <!-- CARGADOR 3D -->
+                  <div class="cube-wrapper mb-2">
+                    <div class="cube"><div class="front"></div><div class="back"></div><div class="right"></div><div class="left"></div><div class="top"></div><div class="bottom"></div></div>
+                  </div>
+                  <span class="font-bold text-sm tracking-wide">Conectando con Supabase SQL...</span>
                 </div>
               </td>
             </tr>
@@ -286,7 +279,7 @@
     </div>
   </div>
 
-  <!-- MODAL GESTIÓN -->
+  <!-- MODAL GESTIÓN (IDÉNTICO A LA CORRECCIÓN ANTERIOR, FUNCIONAL 100%) -->
   <div id="modalGestion" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl p-5 max-w-4xl w-full shadow-2xl space-y-3 max-h-[95vh] overflow-y-auto modal-anim">
       <div class="flex justify-between items-center border-b pb-2">
@@ -466,8 +459,7 @@
     async function cargarDatosBD() {
       const tbody = document.getElementById('tablaResultados');
       if(tbody) {
-          tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-blue-600"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-3"></i><span class="font-bold text-sm">Descargando historial completo de Supabase...</span></div></td></tr>`;
-          lucide.createIcons();
+          tbody.innerHTML = `<tr><td colspan="15" class="py-20 text-center"><div class="flex flex-col items-center justify-center text-blue-600 space-y-4"><div class="cube-wrapper mb-2"><div class="cube"><div class="front"></div><div class="back"></div><div class="right"></div><div class="left"></div><div class="top"></div><div class="bottom"></div></div></div><span class="font-bold text-sm tracking-wide">Descargando historial completo de Supabase...</span></div></td></tr>`;
       }
 
       try {
@@ -567,28 +559,36 @@
       });
     }
 
+    // ACTUALIZACIÓN DE KPIS CON DIVISIÓN DE LOTES BASE Y REGISTROS TOTALES
     function actualizarKPIs(listaDatos) {
-      const total = listaDatos.length;
+      const totalRegistros = listaDatos.length;
       let liberados = 0;
       let pendientes = 0;
       let cuarentena = 0;
+
+      const setLotesBase = new Set();
 
       listaDatos.forEach(r => {
         if (esLoteEnCuarentena(r)) cuarentena++;
         else if (tieneResultadosPendientes(r)) pendientes++;
         else liberados++;
+
+        // Extracción Inteligente del Lote Base (Ej. L6142NO -> L6142)
+        if(r.lote) {
+          const match = r.lote.match(/L\d+/i);
+          if(match) setLotesBase.add(match[0].toUpperCase());
+          else setLotesBase.add(r.lote.toUpperCase()); // Fallback
+        }
       });
 
-      document.getElementById('kpiTotal').innerText = total;
+      document.getElementById('kpiLotesBase').innerText = setLotesBase.size;
+      document.getElementById('kpiTotal').innerText = totalRegistros;
       document.getElementById('kpiLiberados').innerText = liberados;
       document.getElementById('kpiPendientes').innerText = pendientes;
       document.getElementById('kpiCuarentena').innerText = cuarentena;
 
-      const conformidad = total > 0 ? Math.round((liberados / total) * 100) : 100;
-      const tasaCuar = total > 0 ? ((cuarentena / total) * 100).toFixed(1) : 0;
-
+      const conformidad = totalRegistros > 0 ? Math.round((liberados / totalRegistros) * 100) : 100;
       document.getElementById('kpiConformidad').innerText = conformidad + '%';
-      document.getElementById('kpiTasaCuarentena').innerText = tasaCuar + '%';
 
       animarKPIsVisuales();
     }
@@ -642,7 +642,7 @@
         if (cuarentena || pendiente) {
           fLib = '';
         } else if (!fLib || fLib === '-' || fLib === '') {
-          fLib = row.fecha_envio; // Si estuviera vacío (no debería con la corrección), usa fecha envío
+          fLib = row.fecha_envio; // Si estuviera vacío, usa fecha envío
         }
 
         let txtFechaLib = (fLib && fLib !== '-' && fLib !== '') ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
@@ -689,7 +689,6 @@
       let estadoVivo = '';
       if (cuarentena) {
           estadoVivo = 'EN CUARENTENA';
-          // CORRECCIÓN: Inyectamos la opción explícitamente para que selectDict.value NO sea vacío
           selectDict.innerHTML = `<option value="EN CUARENTENA">EN CUARENTENA</option>`;
           selectDict.value = 'EN CUARENTENA';
           selectDict.className = "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800 transition-colors cursor-not-allowed pointer-events-none";
@@ -849,14 +848,12 @@
         regActual.mohos_levaduras = document.getElementById('gHTST_Mohos').value;
       }
 
-      // CORRECCIÓN DEFINITIVA: Recalcular matemáticamente el estado aquí y NO depender del <select> HTML
       let cuarentenaFinal = esLoteEnCuarentena(regActual);
       let pendienteFinal = tieneResultadosPendientes(regActual);
       let dictamenReal = cuarentenaFinal ? 'EN CUARENTENA' : (pendienteFinal ? 'PENDIENTE RESULTADOS' : 'CONFORME LIBERADO');
       
       regActual.dictamen_final = dictamenReal;
       
-      // SOLO si realmente es conforme liberado, tomamos la fecha escrita por el usuario obligatoriamente.
       if (dictamenReal === 'CONFORME LIBERADO') {
         regActual.fecha_liberacion = document.getElementById('gFechaLib').value || new Date().toISOString().substring(0, 10);
       } else {
@@ -945,7 +942,8 @@
       let key = localStorage.getItem('HTST_GEMINI_KEY');
       const msg = document.getElementById('statusMessage');
       if(!key) {
-        msg.className = 'mt-2 text-xs text-rose-600 block';
+        msg.classList.remove('hidden', 'bg-blue-50', 'border-blue-200');
+        msg.className = 'mt-3 text-xs text-rose-600 block font-bold rounded p-2 border border-rose-200 bg-rose-50';
         msg.innerText = '⚠️ Configura tu API Key arriba a la derecha primero.';
         toggleConfig();
         return;
@@ -955,9 +953,14 @@
 
     async function procesarConIA(file, key) {
       const msg = document.getElementById('statusMessage');
-      msg.className = 'mt-2 text-xs text-blue-600 block font-bold';
-      msg.innerHTML = `<i data-lucide="cpu" class="w-3 h-3 inline mr-1"></i>Analizando matriz con IA y guardando en Supabase...`;
-      lucide.createIcons();
+      msg.className = 'mt-3 text-xs text-blue-700 block font-bold rounded p-3 border border-blue-200 bg-blue-50';
+      msg.innerHTML = `
+        <div class="flex items-center gap-3">
+          <div class="cube-mini-wrapper">
+            <div class="cube-mini"><div class="front"></div><div class="back"></div><div class="right"></div><div class="left"></div><div class="top"></div><div class="bottom"></div></div>
+          </div> 
+          <span>Extrayendo datos de la imagen y validando duplicidad...</span>
+        </div>`;
 
       try {
         const raw = await toBase64(file);
@@ -1025,27 +1028,60 @@
         if(!Array.isArray(registros)) registros = [registros];
         
         const modo = document.getElementById('selectModoCarga').value;
-        registros = registros.map(r => { 
+        
+        // --- CONTROL INTELIGENTE DE DUPLICIDAD ---
+        let duplicadosOmitidos = 0;
+        let registrosNuevos = [];
+
+        registros.forEach(r => {
           if(modo !== 'AUTO') r.tipo_proceso = modo; 
+          
           if(!tieneResultadosPendientes(r) && !esLoteEnCuarentena(r) && !r.fecha_liberacion) {
             r.fecha_liberacion = r.fecha_envio || new Date().toISOString().substring(0, 10);
           } else if (tieneResultadosPendientes(r) || esLoteEnCuarentena(r)) {
             r.fecha_liberacion = null;
           }
-          return r; 
+
+          // Verificar en la data actual (datosGlobales) si ya existe Lote + Producto + Proceso
+          const yaExiste = datosGlobales.some(dbRow => 
+            String(dbRow.lote).trim().toUpperCase() === String(r.lote).trim().toUpperCase() &&
+            String(dbRow.producto).trim().toUpperCase() === String(r.producto).trim().toUpperCase() &&
+            String(dbRow.tipo_proceso).toUpperCase() === String(r.tipo_proceso).toUpperCase()
+          );
+
+          if (yaExiste) {
+            duplicadosOmitidos++;
+          } else {
+            registrosNuevos.push(r);
+          }
         });
 
-        const { error } = await db.from('matriz_calidad').insert(registros);
+        // Validar si vale la pena enviar a Supabase
+        if (registrosNuevos.length === 0) {
+          msg.className = 'mt-3 text-xs text-amber-700 block font-bold rounded p-3 border border-amber-200 bg-amber-50';
+          msg.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4 inline mr-1 align-text-bottom"></i> Procesamiento terminado. Se encontraron ${duplicadosOmitidos} registros duplicados que ya están en tu historial y se omitieron. Cero registros nuevos guardados.`;
+          lucide.createIcons();
+          document.getElementById('fileInput').value = '';
+          return;
+        }
+
+        const { error } = await db.from('matriz_calidad').insert(registrosNuevos);
         if(error) throw new Error(error.message);
 
-        msg.className = 'mt-2 text-xs text-emerald-600 block font-bold';
-        msg.innerHTML = '<i data-lucide="check-circle-2" class="w-3 h-3 inline mr-1"></i>¡Registros de IA guardados en Supabase con éxito!';
+        let mensajeFinal = `<i data-lucide="check-circle-2" class="w-4 h-4 inline mr-1 align-text-bottom"></i>¡${registrosNuevos.length} Registros nuevos guardados con éxito!`;
+        if (duplicadosOmitidos > 0) {
+          mensajeFinal += ` (Adicionalmente se omitieron ${duplicadosOmitidos} registros duplicados).`;
+        }
+
+        msg.className = 'mt-3 text-xs text-emerald-700 block font-bold rounded p-3 border border-emerald-200 bg-emerald-50';
+        msg.innerHTML = mensajeFinal;
         lucide.createIcons();
         document.getElementById('fileInput').value = '';
         setTimeout(() => cargarDatosBD(), 1000);
       } catch(e) {
-        msg.className = 'mt-2 text-xs text-rose-600 block';
-        msg.innerText = 'Error: ' + e.message;
+        msg.className = 'mt-3 text-xs text-rose-700 block font-bold rounded p-3 border border-rose-200 bg-rose-50';
+        msg.innerHTML = `<i data-lucide="x-circle" class="w-4 h-4 inline mr-1 align-text-bottom"></i> Error: ` + e.message;
+        lucide.createIcons();
       }
     }
 
