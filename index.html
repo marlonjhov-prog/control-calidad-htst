@@ -219,7 +219,7 @@
         <div>
           <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Búsqueda Rápida:</label>
           <div class="relative">
-            <input type="text" id="busquedaTexto" oninput="aplicarFiltros()" placeholder="Ej: L6142, L6142NO..." class="w-full text-xs border border-slate-300 rounded-lg p-2 pl-7 bg-slate-50 font-medium outline-none focus:ring-2 focus:ring-blue-100">
+            <input type="text" id="busquedaTexto" oninput="aplicarFiltros()" placeholder="Ej: L6142, L6142NO..." class="w-full text-xs border border-slate-300 rounded-lg p-2 pl-7 bg-slate-50 font-medium outline-none focus:ring-2 focus:ring-blue-100 transition-all">
             <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5"></i>
           </div>
         </div>
@@ -278,8 +278,14 @@
       </div>
       
       <div class="pt-3 flex justify-between shrink-0 items-center border-t border-slate-100">
-         <span class="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-full">* Listado extraído según tus filtros actuales (Mes, Año, etc.)</span>
-        <button onclick="document.getElementById('modalLotesBase').classList.add('hidden')" class="px-5 py-2 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors shadow-sm">Cerrar Panel</button>
+         <span class="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-full">* Orden Ascendente (según tus filtros actuales)</span>
+        <div class="flex items-center gap-2">
+          <!-- BOTÓN PARA LIMPIAR SELECCIÓN / RESTABLECER FILTRO -->
+          <button onclick="limpiarFiltroLoteBase()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center gap-1.5">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Limpiar Selección
+          </button>
+          <button onclick="document.getElementById('modalLotesBase').classList.add('hidden')" class="px-5 py-2 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors shadow-sm">Cerrar Panel</button>
+        </div>
       </div>
     </div>
   </div>
@@ -402,7 +408,7 @@
       }
     });
 
-    // -------- FUNCIONES NUEVAS: LOTES BASE Y MODAL --------
+    // -------- FUNCIONES DE LOTES BASE (ORDEN ASCENDENTE Y LIMPIEZA) --------
     function extraerLoteBase(loteStr) {
       if(!loteStr) return 'S/N';
       const match = String(loteStr).match(/L\d+/i);
@@ -410,13 +416,15 @@
     }
 
     function abrirModalLotesBase() {
-      // Extraemos usando los datos ya filtrados en pantalla
       const setLotes = new Set();
+      // Se extraen los Lotes Base desde los datos actualmente en pantalla
       datosFiltradosGlobales.forEach(r => {
-         setLotes.add(extraerLoteBase(r.lote));
+         const lb = extraerLoteBase(r.lote);
+         if(lb && lb !== 'S/N' && lb !== '/') setLotes.add(lb);
       });
       
-      const arrayLotes = Array.from(setLotes).sort().reverse(); 
+      // CORRECCIÓN 1: ORDEN ASCENDENTE (Numérico y Alfabético Natural)
+      const arrayLotes = Array.from(setLotes).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })); 
       const grid = document.getElementById('gridLotesBase');
       
       if(arrayLotes.length === 0) {
@@ -436,16 +444,22 @@
     function filtrarPorLoteBase(lote) {
       document.getElementById('modalLotesBase').classList.add('hidden');
       const inputBusqueda = document.getElementById('busquedaTexto');
-      inputBusqueda.value = lote; // Escribimos el Lote Base en el input de búsqueda rápida
-      aplicarFiltros(); // Y ejecutamos el filtro
+      inputBusqueda.value = lote; 
+      aplicarFiltros(); 
       
-      // Hacemos que el input brille brevemente para que el usuario note dónde se aplicó
       inputBusqueda.classList.add('ring-4', 'ring-indigo-300', 'bg-indigo-50');
       setTimeout(() => {
         inputBusqueda.classList.remove('ring-4', 'ring-indigo-300', 'bg-indigo-50');
       }, 800);
     }
-    // -------------------------------------------------------
+
+    // CORRECCIÓN 2: FUNCIÓN PARA LIMPIAR LA SELECCIÓN DE LOTE
+    function limpiarFiltroLoteBase() {
+      document.getElementById('busquedaTexto').value = '';
+      aplicarFiltros();
+      document.getElementById('modalLotesBase').classList.add('hidden');
+    }
+    // ------------------------------------------------------------------------
 
     function abrirModalDashboard(tipo) {
       let datosParaGrafico = [];
@@ -640,8 +654,8 @@
         else if (tieneResultadosPendientes(r)) pendientes++;
         else liberados++;
 
-        // Uso de la misma función centralizada
-        setLotesBase.add(extraerLoteBase(r.lote));
+        const lb = extraerLoteBase(r.lote);
+        if(lb && lb !== 'S/N' && lb !== '/') setLotesBase.add(lb);
       });
 
       document.getElementById('kpiLotesBase').innerText = setLotesBase.size;
