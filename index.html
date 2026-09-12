@@ -8,6 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- CLIENTE OFICIAL DE SUPABASE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <style>
@@ -466,23 +467,44 @@
       }
     }
 
+    // CARGA MASIVA TOTAL SIN LÍMITE DE 1000 REGISTROS (AUDITORÍA FSSC 22000)
     async function cargarDatosBD() {
       const tbody = document.getElementById('tablaResultados');
       if(tbody) {
-          tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-blue-600"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-3"></i><span class="font-bold text-sm">Consultando base de datos Supabase...</span></div></td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-blue-600"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-3"></i><span class="font-bold text-sm">Descargando historial completo de Supabase...</span></div></td></tr>`;
           lucide.createIcons();
       }
 
       try {
-        const { data, error } = await db
-          .from('matriz_calidad')
-          .select('*')
-          .order('fecha_envio', { ascending: false });
+        let allData = [];
+        let rangeSize = 1000;
+        let from = 0;
+        let to = rangeSize - 1;
+        let continuar = true;
 
-        if (error) throw error;
+        while (continuar) {
+          const { data, error } = await db
+            .from('matriz_calidad')
+            .select('*')
+            .order('fecha_envio', { ascending: false })
+            .range(from, to);
 
-        let rawData = data || [];
-        datosGlobales = rawData.map((row, index) => ({ ...row, frontend_id: index }));
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            allData = allData.concat(data);
+            if (data.length < rangeSize) {
+              continuar = false;
+            } else {
+              from += rangeSize;
+              to += rangeSize;
+            }
+          } else {
+            continuar = false;
+          }
+        }
+
+        datosGlobales = allData.map((row, index) => ({ ...row, frontend_id: index }));
         
         poblarFiltrosJerarquicos(); 
         aplicarFiltros();
@@ -905,7 +927,7 @@
     }
 
     // =========================================================================
-    // PROMPT IA
+    // PROMPT IA CON PROTECCIÓN DE TIMEOUT
     // =========================================================================
     async function procesarArchivo() {
       const input = document.getElementById('fileInput');
@@ -963,13 +985,28 @@
         DEVUELVE ÚNICA Y EXCLUSIVAMENTE EL ARREGLO JSON.`;
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${encodeURIComponent(key.trim())}`;
-        const response = await fetch(url, {
-          method: 'POST', 
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: file.type || 'image/jpeg', data: base64Data } }] }], generationConfig: { response_mime_type: "application/json" } })
-        });
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-        if(!response.ok) throw new Error(`Error HTTP ${response.status}`);
+        let response;
+        try {
+          response = await fetch(url, {
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: file.type || 'image/jpeg', data: base64Data } }] }], generationConfig: { response_mime_type: "application/json" } }),
+            signal: controller.signal
+          });
+        } catch (fetchErr) {
+          if (fetchErr.name === 'AbortError') {
+            throw new Error("El servidor de Google tardó demasiado en responder (Timeout). Inténtalo de nuevo.");
+          }
+          throw fetchErr;
+        } finally {
+          clearTimeout(timeoutId);
+        }
+
+        if(!response.ok) throw new Error(`El servidor se saturó (Error HTTP ${response.status}). Espera unos segundos y reintenta.`);
         const resData = await response.json();
         if(resData.error) throw new Error(resData.error.message);
         
@@ -994,7 +1031,7 @@
         setTimeout(() => cargarDatosBD(), 1000);
       } catch(e) {
         msg.className = 'mt-2 text-xs text-rose-600 block';
-        msg.innerText = 'Error de lectura IA / Supabase: ' + e.message;
+        msg.innerText = 'Error: ' + e.message;
       }
     }
 
@@ -1008,6 +1045,7 @@
       aplicarFiltros();
     }
 
+    // EXTRACTOR DE AÑOS ROBUSTO PARA AUDITORÍA (INCLUYE 2025 Y 2026)
     function poblarFiltrosJerarquicos() {
       const productos = [...new Set(datosGlobales.map(d => d.producto).filter(Boolean))].sort();
       const list = document.getElementById('dropdownList');
@@ -1017,7 +1055,9 @@
 
       const anios = [...new Set(datosGlobales.map(d => {
         if(!d.fecha_envio) return null;
-        return String(d.fecha_envio).substring(0, 4);
+        let fechaStr = String(d.fecha_envio).trim();
+        let match = fechaStr.match(/^\d{4}/);
+        return match ? match[0] : null;
       }).filter(Boolean))].sort().reverse();
 
       const selectAnio = document.getElementById('filterAnio');
@@ -1034,7 +1074,8 @@
 
       datosFiltradosGlobales = datosGlobales.filter(r => {
         const fechaStr = r.fecha_envio ? String(r.fecha_envio) : '';
-        const anioReg = fechaStr.substring(0, 4);
+        let matchAnio = fechaStr.match(/^\d{4}/);
+        const anioReg = matchAnio ? matchAnio[0] : '';
         const mesReg = fechaStr.substring(5, 7);
 
         const mProc = (proc === 'TODOS' || r.tipo_proceso === proc);
