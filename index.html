@@ -108,12 +108,12 @@
     <!-- DASHBOARD DE KPIS -->
     <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
       <!-- KPI 1: LOTES BASE -->
-      <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-indigo-300 group">
-        <div>
-          <p class="text-[9px] uppercase font-bold text-indigo-500 transition-colors">Lotes Base (Días)</p>
+      <div onclick="abrirModalLotesBase()" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-indigo-400 cursor-pointer group relative overflow-hidden">
+        <div class="relative z-10">
+          <p class="text-[9px] uppercase font-bold text-indigo-500 group-hover:text-indigo-700 transition-colors">Lotes Base (Días)</p>
           <h3 id="kpiLotesBase" class="text-lg font-black text-indigo-800">0</h3>
         </div>
-        <div class="bg-indigo-50 p-2.5 rounded-lg text-indigo-600 anim-stack kpi-box"><i data-lucide="calendar" class="w-4 h-4"></i></div>
+        <div class="bg-indigo-50 p-2.5 rounded-lg text-indigo-600 anim-stack kpi-box relative z-10 group-hover:bg-indigo-600 group-hover:text-white transition-colors"><i data-lucide="calendar" class="w-4 h-4"></i></div>
       </div>
       <!-- KPI 2: TOTAL REGISTROS -->
       <div onclick="abrirModalDashboard('TOTAL')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-blue-300 cursor-pointer group">
@@ -121,7 +121,7 @@
           <p class="text-[9px] uppercase font-bold text-slate-400 group-hover:text-blue-600 transition-colors">Total Registros</p>
           <h3 id="kpiTotal" class="text-lg font-black text-slate-800">0</h3>
         </div>
-        <div class="bg-blue-50 p-2.5 rounded-lg text-blue-600 anim-stack kpi-box"><i data-lucide="layers" class="w-4 h-4"></i></div>
+        <div class="bg-blue-50 p-2.5 rounded-lg text-blue-600 anim-stack kpi-box group-hover:bg-blue-600 group-hover:text-white transition-colors"><i data-lucide="layers" class="w-4 h-4"></i></div>
       </div>
       <!-- KPI 3: LIBERADOS -->
       <div onclick="abrirModalDashboard('LIBERADOS')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-emerald-300 cursor-pointer group">
@@ -129,7 +129,7 @@
           <p class="text-[9px] uppercase font-bold text-emerald-600">Liberados</p>
           <h3 id="kpiLiberados" class="text-lg font-black text-emerald-700">0</h3>
         </div>
-        <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-600 anim-float kpi-box"><i data-lucide="check-circle-2" class="w-4 h-4"></i></div>
+        <div class="bg-emerald-50 p-2.5 rounded-lg text-emerald-600 anim-float kpi-box group-hover:bg-emerald-500 group-hover:text-white transition-colors"><i data-lucide="check-circle-2" class="w-4 h-4"></i></div>
       </div>
       <!-- KPI 4: PENDIENTES -->
       <div onclick="abrirModalDashboard('PENDIENTES')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-amber-300 cursor-pointer group">
@@ -137,7 +137,7 @@
           <p class="text-[9px] uppercase font-bold text-amber-600">Pendientes</p>
           <h3 id="kpiPendientes" class="text-lg font-black text-amber-600">0</h3>
         </div>
-        <div class="bg-amber-50 p-2.5 rounded-lg text-amber-600 anim-pendulum kpi-box"><i data-lucide="clock" class="w-4 h-4"></i></div>
+        <div class="bg-amber-50 p-2.5 rounded-lg text-amber-600 anim-pendulum kpi-box group-hover:bg-amber-500 group-hover:text-white transition-colors"><i data-lucide="clock" class="w-4 h-4"></i></div>
       </div>
       <!-- KPI 5: CUARENTENA -->
       <div onclick="abrirModalDashboard('CUARENTENA')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-rose-300 cursor-pointer group">
@@ -145,7 +145,7 @@
           <p class="text-[9px] uppercase font-bold text-rose-600">En Cuarentena</p>
           <h3 id="kpiCuarentena" class="text-lg font-black text-rose-600">0</h3>
         </div>
-        <div class="bg-rose-50 p-2.5 rounded-lg text-rose-600 anim-heartbeat kpi-box"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div>
+        <div class="bg-rose-50 p-2.5 rounded-lg text-rose-600 anim-heartbeat kpi-box group-hover:bg-rose-500 group-hover:text-white transition-colors"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div>
       </div>
       <!-- KPI 6: CONFORMIDAD DIRECTA -->
       <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between bg-gradient-to-br from-emerald-50/40 to-white transition-all">
@@ -239,7 +239,6 @@
             <tr>
               <td colspan="15" class="py-20 text-center">
                 <div class="flex flex-col items-center justify-center text-blue-600 space-y-4">
-                  <!-- CARGADOR 3D -->
                   <div class="cube-wrapper mb-2">
                     <div class="cube"><div class="front"></div><div class="back"></div><div class="right"></div><div class="left"></div><div class="top"></div><div class="bottom"></div></div>
                   </div>
@@ -261,6 +260,30 @@
 
   </main>
 
+  <!-- MODAL LOTES BASE (DÍAS) -->
+  <div id="modalLotesBase" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-4xl w-full shadow-2xl space-y-4 modal-anim max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center border-b pb-3 shrink-0">
+        <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+          <i data-lucide="calendar" class="w-6 h-6 text-indigo-600"></i> Selector Rápido de Días (Lotes Base)
+        </h3>
+        <button onclick="document.getElementById('modalLotesBase').classList.add('hidden')" class="text-slate-400 font-bold text-2xl hover:text-rose-600 transition-colors">✕</button>
+      </div>
+      
+      <div class="overflow-y-auto p-2 grow">
+        <p class="text-xs text-slate-500 mb-4 font-medium"><i data-lucide="info" class="w-3.5 h-3.5 inline"></i> Haz clic en cualquier Lote Base para filtrar automáticamente todos los productos y máquinas vinculadas a ese día en la tabla principal.</p>
+        <div id="gridLotesBase" class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
+          <!-- Inyectado por JS -->
+        </div>
+      </div>
+      
+      <div class="pt-3 flex justify-between shrink-0 items-center border-t border-slate-100">
+         <span class="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-full">* Listado extraído según tus filtros actuales (Mes, Año, etc.)</span>
+        <button onclick="document.getElementById('modalLotesBase').classList.add('hidden')" class="px-5 py-2 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-200 transition-colors shadow-sm">Cerrar Panel</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL DASHBOARD -->
   <div id="modalDashboard" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl p-6 max-w-4xl w-full shadow-2xl space-y-4 modal-anim">
@@ -279,7 +302,7 @@
     </div>
   </div>
 
-  <!-- MODAL GESTIÓN (IDÉNTICO A LA CORRECCIÓN ANTERIOR, FUNCIONAL 100%) -->
+  <!-- MODAL GESTIÓN -->
   <div id="modalGestion" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl p-5 max-w-4xl w-full shadow-2xl space-y-3 max-h-[95vh] overflow-y-auto modal-anim">
       <div class="flex justify-between items-center border-b pb-2">
@@ -379,6 +402,51 @@
       }
     });
 
+    // -------- FUNCIONES NUEVAS: LOTES BASE Y MODAL --------
+    function extraerLoteBase(loteStr) {
+      if(!loteStr) return 'S/N';
+      const match = String(loteStr).match(/L\d+/i);
+      return match ? match[0].toUpperCase() : String(loteStr).toUpperCase();
+    }
+
+    function abrirModalLotesBase() {
+      // Extraemos usando los datos ya filtrados en pantalla
+      const setLotes = new Set();
+      datosFiltradosGlobales.forEach(r => {
+         setLotes.add(extraerLoteBase(r.lote));
+      });
+      
+      const arrayLotes = Array.from(setLotes).sort().reverse(); 
+      const grid = document.getElementById('gridLotesBase');
+      
+      if(arrayLotes.length === 0) {
+        grid.innerHTML = '<div class="col-span-full text-center text-slate-400 text-xs py-10 font-bold">No hay Lotes Base disponibles en la búsqueda actual.</div>';
+      } else {
+        grid.innerHTML = arrayLotes.map(lote => 
+          `<div onclick="filtrarPorLoteBase('${lote}')" class="bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-600 hover:text-white hover:border-indigo-700 rounded-lg py-3 px-2 text-center font-black text-xs cursor-pointer transition-all shadow-sm truncate hover:-translate-y-1" title="${lote}">
+            ${lote}
+          </div>`
+        ).join('');
+      }
+      
+      document.getElementById('modalLotesBase').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function filtrarPorLoteBase(lote) {
+      document.getElementById('modalLotesBase').classList.add('hidden');
+      const inputBusqueda = document.getElementById('busquedaTexto');
+      inputBusqueda.value = lote; // Escribimos el Lote Base en el input de búsqueda rápida
+      aplicarFiltros(); // Y ejecutamos el filtro
+      
+      // Hacemos que el input brille brevemente para que el usuario note dónde se aplicó
+      inputBusqueda.classList.add('ring-4', 'ring-indigo-300', 'bg-indigo-50');
+      setTimeout(() => {
+        inputBusqueda.classList.remove('ring-4', 'ring-indigo-300', 'bg-indigo-50');
+      }, 800);
+    }
+    // -------------------------------------------------------
+
     function abrirModalDashboard(tipo) {
       let datosParaGrafico = [];
       let colorGrafico = '';
@@ -427,7 +495,7 @@
           data: {
               labels: etiquetasMeses,
               datasets: [{
-                  label: `Cantidad de Lotes (${tituloEtiqueta})`,
+                  label: `Cantidad de Registros (${tituloEtiqueta})`,
                   data: valoresSuma,
                   backgroundColor: colorGrafico,
                   borderRadius: 6,
@@ -559,7 +627,6 @@
       });
     }
 
-    // ACTUALIZACIÓN DE KPIS CON DIVISIÓN DE LOTES BASE Y REGISTROS TOTALES
     function actualizarKPIs(listaDatos) {
       const totalRegistros = listaDatos.length;
       let liberados = 0;
@@ -573,12 +640,8 @@
         else if (tieneResultadosPendientes(r)) pendientes++;
         else liberados++;
 
-        // Extracción Inteligente del Lote Base (Ej. L6142NO -> L6142)
-        if(r.lote) {
-          const match = r.lote.match(/L\d+/i);
-          if(match) setLotesBase.add(match[0].toUpperCase());
-          else setLotesBase.add(r.lote.toUpperCase()); // Fallback
-        }
+        // Uso de la misma función centralizada
+        setLotesBase.add(extraerLoteBase(r.lote));
       });
 
       document.getElementById('kpiLotesBase').innerText = setLotesBase.size;
@@ -637,12 +700,11 @@
         let cResp = (respFinal && respFinal !== '/') ? `<span class="font-black text-amber-700">${respFinal}</span>` : '<span class="text-slate-300">/</span>';
         let cObs = (row.observaciones && row.observaciones !== '/' && !String(row.observaciones).includes('1899-')) ? `<br><span class="text-[9px] text-slate-400 italic block truncate max-w-[120px]">${row.observaciones}</span>` : '';
 
-        // Si está en cuarentena o pendiente se muestra vacío, si está liberado muestra su fecha de liberación real
         let fLib = row.fecha_liberacion;
         if (cuarentena || pendiente) {
           fLib = '';
         } else if (!fLib || fLib === '-' || fLib === '') {
-          fLib = row.fecha_envio; // Si estuviera vacío, usa fecha envío
+          fLib = row.fecha_envio; 
         }
 
         let txtFechaLib = (fLib && fLib !== '-' && fLib !== '') ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
@@ -1029,7 +1091,6 @@
         
         const modo = document.getElementById('selectModoCarga').value;
         
-        // --- CONTROL INTELIGENTE DE DUPLICIDAD ---
         let duplicadosOmitidos = 0;
         let registrosNuevos = [];
 
@@ -1042,7 +1103,6 @@
             r.fecha_liberacion = null;
           }
 
-          // Verificar en la data actual (datosGlobales) si ya existe Lote + Producto + Proceso
           const yaExiste = datosGlobales.some(dbRow => 
             String(dbRow.lote).trim().toUpperCase() === String(r.lote).trim().toUpperCase() &&
             String(dbRow.producto).trim().toUpperCase() === String(r.producto).trim().toUpperCase() &&
@@ -1056,7 +1116,6 @@
           }
         });
 
-        // Validar si vale la pena enviar a Supabase
         if (registrosNuevos.length === 0) {
           msg.className = 'mt-3 text-xs text-amber-700 block font-bold rounded p-3 border border-amber-200 bg-amber-50';
           msg.innerHTML = `<i data-lucide="alert-triangle" class="w-4 h-4 inline mr-1 align-text-bottom"></i> Procesamiento terminado. Se encontraron ${duplicadosOmitidos} registros duplicados que ya están en tu historial y se omitieron. Cero registros nuevos guardados.`;
