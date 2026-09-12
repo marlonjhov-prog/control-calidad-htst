@@ -623,13 +623,13 @@
         let claseDict = '';
         if(cuarentena) {
           dict = '⚠️ CUARENTENA';
-          claseDict = 'bg-rose-100 text-rose-800 border-rose-400 hover:bg-rose-200';
+          claseDict = 'bg-rose-100 text-rose-800 border-rose-400 hover:bg-rose-200 cursor-pointer';
         } else if(pendiente) {
           dict = '⏰ PENDIENTE RESULTADOS';
-          claseDict = 'bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-200';
+          claseDict = 'bg-amber-100 text-amber-800 border-amber-400 hover:bg-amber-200 cursor-pointer';
         } else {
           dict = '✓ LIBERADO';
-          claseDict = 'bg-emerald-100 text-emerald-800 border-emerald-400 hover:bg-emerald-200';
+          claseDict = 'bg-emerald-100 text-emerald-800 border-emerald-400 hover:bg-emerald-200 cursor-pointer';
         }
 
         let respFinal = row.responsable;
@@ -637,7 +637,6 @@
         let cResp = (respFinal && respFinal !== '/') ? `<span class="font-black text-amber-700">${respFinal}</span>` : '<span class="text-slate-300">/</span>';
         let cObs = (row.observaciones && row.observaciones !== '/' && !String(row.observaciones).includes('1899-')) ? `<br><span class="text-[9px] text-slate-400 italic block truncate max-w-[120px]">${row.observaciones}</span>` : '';
 
-        // REGLA F. LIB: Si está en cuarentena o pendiente va vacío (-). Si está liberado, muestra fecha de liberación guardada (o de envío si no tuviera).
         let fLib = row.fecha_liberacion;
         if (cuarentena || pendiente) {
           fLib = '';
@@ -650,11 +649,11 @@
         let fRowClasses = "hover:bg-blue-50/80 transition-colors duration-150 border-b group";
 
         if(filtroProc === 'UHT') {
-          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black text-cyan-700">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.arb_termofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.acido_lacticas)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black text-cyan-700">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.arb_termofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.acido_lacticas)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button type="button" onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         } else if(filtroProc === 'HTST') {
-          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black text-blue-800">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.e_coli)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.enterobacterias)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black text-blue-800">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.e_coli)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.enterobacterias)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button type="button" onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         } else {
-          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[140px]">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.arb_termofilos : row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.acido_lacticas : row.e_coli)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.enterobacterias)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[140px]">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.arb_termofilos : row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.acido_lacticas : row.e_coli)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.enterobacterias)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button type="button" onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         }
       }).join('');
       lucide.createIcons();
@@ -702,7 +701,6 @@
           selectDict.value = 'CONFORME LIBERADO';
           selectDict.className = "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800 transition-colors cursor-not-allowed pointer-events-none";
           
-          // Si pasa a liberado y no tiene fecha escrita en el input, le pone la fecha guardada previa o la fecha actual por defecto
           if(!inputFechaLib.value || inputFechaLib.value === '') {
             inputFechaLib.value = regActual.fecha_liberacion || new Date().toISOString().substring(0, 10);
           }
@@ -811,7 +809,6 @@
       document.getElementById('gResp').value = respVal || '';
       document.getElementById('gObs').value = obsFinal;
       
-      // Asigna la fecha de liberación guardada previamente, o la fecha actual si estaba en cuarentena y se va a liberar
       let fechaLibVal = '';
       if (regActual.fecha_liberacion) {
         fechaLibVal = String(regActual.fecha_liberacion).substring(0, 10);
@@ -827,7 +824,7 @@
       document.getElementById('gFechaLib').addEventListener('input', evaluarEnVivoModal);
 
       evaluarEnVivoModal();
-      document.getElementById('modalGestion').classList.add('hidden');
+      document.getElementById('modalGestion').classList.remove('hidden');
     }
 
     async function guardarGestionModal() {
@@ -849,7 +846,6 @@
 
       regActual.dictamen_final = document.getElementById('gDictamen').value;
       
-      // CORRECCIÓN CRÍTICA: Asigna explícitamente la nueva fecha seleccionada en el input del modal al objeto antes de enviarlo a Supabase
       if (regActual.dictamen_final === 'CONFORME LIBERADO') {
         regActual.fecha_liberacion = document.getElementById('gFechaLib').value;
       } else {
