@@ -87,7 +87,7 @@
         <i data-lucide="shield-check" class="w-7 h-7 text-emerald-400"></i>
         <div>
           <h1 class="text-lg font-bold leading-tight">App Calidad | HTST & UHT</h1>
-          <p class="text-[10px] text-blue-200">Liberación FSSC 22000 - Motor Supabase SQL</p>
+          <p class="text-[10px] text-blue-200">Liberación de Lotes - Motor SQL server</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -637,12 +637,12 @@
         let cResp = (respFinal && respFinal !== '/') ? `<span class="font-black text-amber-700">${respFinal}</span>` : '<span class="text-slate-300">/</span>';
         let cObs = (row.observaciones && row.observaciones !== '/' && !String(row.observaciones).includes('1899-')) ? `<br><span class="text-[9px] text-slate-400 italic block truncate max-w-[120px]">${row.observaciones}</span>` : '';
 
-        // REGLA F. LIB: Si está en cuarentena o pendiente va vacío (-). Si está liberado, muestra fecha guardada o fecha de envío.
+        // Si está en cuarentena o pendiente se muestra vacío, si está liberado muestra su fecha de liberación real
         let fLib = row.fecha_liberacion;
         if (cuarentena || pendiente) {
           fLib = '';
         } else if (!fLib || fLib === '-' || fLib === '') {
-          fLib = row.fecha_envio;
+          fLib = row.fecha_envio; // Si estuviera vacío (no debería con la corrección), usa fecha envío
         }
 
         let txtFechaLib = (fLib && fLib !== '-' && fLib !== '') ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
@@ -689,20 +689,23 @@
       let estadoVivo = '';
       if (cuarentena) {
           estadoVivo = 'EN CUARENTENA';
+          // CORRECCIÓN: Inyectamos la opción explícitamente para que selectDict.value NO sea vacío
+          selectDict.innerHTML = `<option value="EN CUARENTENA">EN CUARENTENA</option>`;
           selectDict.value = 'EN CUARENTENA';
           selectDict.className = "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800 transition-colors cursor-not-allowed pointer-events-none";
           inputFechaLib.value = ''; 
       } else if (pendiente) {
           estadoVivo = 'PENDIENTE RESULTADOS';
+          selectDict.innerHTML = `<option value="PENDIENTE RESULTADOS">PENDIENTE RESULTADOS</option>`;
           selectDict.value = 'PENDIENTE RESULTADOS';
           selectDict.className = "w-full p-2 border-2 border-amber-400 rounded-lg bg-amber-50 font-black text-amber-800 transition-colors cursor-not-allowed pointer-events-none";
           inputFechaLib.value = ''; 
       } else {
           estadoVivo = 'CONFORME LIBERADO';
+          selectDict.innerHTML = `<option value="CONFORME LIBERADO">CONFORME LIBERADO</option>`;
           selectDict.value = 'CONFORME LIBERADO';
           selectDict.className = "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800 transition-colors cursor-not-allowed pointer-events-none";
           
-          // Si pasa a liberado y el input está vacío, le pone la fecha guardada previa o la fecha actual
           if(!inputFechaLib.value || inputFechaLib.value === '') {
             inputFechaLib.value = regActual.fecha_liberacion || new Date().toISOString().substring(0, 10);
           }
@@ -811,7 +814,6 @@
       document.getElementById('gResp').value = respVal || '';
       document.getElementById('gObs').value = obsFinal;
       
-      // CARGA DE FECHA CORREGIDA: Si ya tiene fecha_liberacion en Supabase la muestra; si no, toma la fecha de envío o la actual.
       let fechaLibVal = '';
       if (regActual.fecha_liberacion && regActual.fecha_liberacion !== '-') {
         fechaLibVal = String(regActual.fecha_liberacion).substring(0, 10);
@@ -847,11 +849,16 @@
         regActual.mohos_levaduras = document.getElementById('gHTST_Mohos').value;
       }
 
-      regActual.dictamen_final = document.getElementById('gDictamen').value;
+      // CORRECCIÓN DEFINITIVA: Recalcular matemáticamente el estado aquí y NO depender del <select> HTML
+      let cuarentenaFinal = esLoteEnCuarentena(regActual);
+      let pendienteFinal = tieneResultadosPendientes(regActual);
+      let dictamenReal = cuarentenaFinal ? 'EN CUARENTENA' : (pendienteFinal ? 'PENDIENTE RESULTADOS' : 'CONFORME LIBERADO');
       
-      // ASIGNACIÓN DE FECHA CORREGIDA: Se guarda exactamente lo que el usuario ponga en el input F. Liberación
-      if (regActual.dictamen_final === 'CONFORME LIBERADO') {
-        regActual.fecha_liberacion = document.getElementById('gFechaLib').value;
+      regActual.dictamen_final = dictamenReal;
+      
+      // SOLO si realmente es conforme liberado, tomamos la fecha escrita por el usuario obligatoriamente.
+      if (dictamenReal === 'CONFORME LIBERADO') {
+        regActual.fecha_liberacion = document.getElementById('gFechaLib').value || new Date().toISOString().substring(0, 10);
       } else {
         regActual.fecha_liberacion = null;
       }
