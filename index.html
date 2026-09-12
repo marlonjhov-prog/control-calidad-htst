@@ -3,26 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Calidad | HTST & UHT</title>
+  <title>App Calidad | HTST & UHT (Supabase)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <!-- LIBRERÍA PARA DASHBOARDS INTERACTIVOS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- PROVEEDOR DE ÍCONOS BLINDADO (JSDELIVR) PARA EVITAR CAÍDAS -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- CLIENTE OFICIAL DE SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <style>
-    /* SCROLLBAR PREMIUM */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    /* =========================================
-       MICRO-INTERACCIONES TEMÁTICAS (KPIs)
-       Apuntamos a 'svg' porque Lucide reemplaza la etiqueta 'i'
-       ========================================= */
-    /* 1. Pulso Vital (Cuarentena / Alertas) */
     @keyframes heartbeat {
       0%, 100% { transform: scale(1); }
       15% { transform: scale(1.15); }
@@ -31,37 +25,30 @@
     }
     .anim-heartbeat svg { animation: heartbeat 2.5s ease-in-out infinite; }
 
-    /* 2. Péndulo (Reloj / Pendientes) */
     @keyframes pendulum {
       0%, 100% { transform: rotate(-15deg); }
       50% { transform: rotate(15deg); }
     }
     .anim-pendulum svg { transform-origin: top center; animation: pendulum 2s ease-in-out infinite; }
 
-    /* 3. Flote Elástico (Liberados / Check) */
     @keyframes floatBounce {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-4px); }
     }
     .anim-float svg { animation: floatBounce 2.5s ease-in-out infinite; }
 
-    /* 4. Apilamiento (Total Lotes / Capas) */
     @keyframes layerStack {
       0%, 100% { transform: translateY(0) scale(1); }
       50% { transform: translateY(-2px) scale(1.05); }
     }
     .anim-stack svg { animation: layerStack 2.5s ease-in-out infinite; }
 
-    /* 5. Resplandor (Conformidad) */
     @keyframes shine {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.6; }
     }
     .anim-shine svg { animation: shine 2.5s ease-in-out infinite; }
 
-    /* =========================================
-       ANIMACIÓN DE ACTUALIZACIÓN (ESTALLIDO/RIPPLE)
-       ========================================= */
     .kpi-box { position: relative; z-index: 1; }
     .kpi-box::after {
       content: '';
@@ -85,7 +72,6 @@
     .anim-burst { animation: containerBump 0.8s ease-out; }
     .anim-burst::after { animation: ripple 0.8s ease-out; }
 
-    /* Transición suave para entrada de Modales */
     @keyframes modalIn {
       from { opacity: 0; transform: translateY(15px) scale(0.97); }
       to { opacity: 1; transform: translateY(0) scale(1); }
@@ -102,7 +88,7 @@
         <i data-lucide="shield-check" class="w-7 h-7 text-emerald-400"></i>
         <div>
           <h1 class="text-lg font-bold leading-tight">App Calidad | HTST & UHT</h1>
-          <p class="text-[10px] text-blue-200">Liberación FSSC 22000 - Dashboards Activos</p>
+          <p class="text-[10px] text-blue-200">Liberación FSSC 22000 - Motor Supabase SQL</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -138,7 +124,6 @@
 
     <!-- DASHBOARD DE KPIS EJECUTIVOS INTERACTIVOS -->
     <section class="grid grid-cols-2 md:grid-cols-6 gap-3">
-      <!-- Ahora los KPIs son clickeables (cursor-pointer) y abren modales -->
       <div onclick="abrirModalDashboard('TOTAL')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-blue-300 cursor-pointer group">
         <div>
           <p class="text-[9px] uppercase font-bold text-slate-400 group-hover:text-blue-600 transition-colors">Total Lotes</p>
@@ -167,7 +152,6 @@
         </div>
         <div class="bg-rose-50 p-2.5 rounded-lg text-rose-600 anim-heartbeat kpi-box"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div>
       </div>
-      <!-- Métricas porcentuales estáticas -->
       <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between bg-gradient-to-br from-emerald-50/40 to-white transition-all">
         <div>
           <p class="text-[9px] uppercase font-bold text-emerald-700">Conformidad Directa</p>
@@ -256,7 +240,7 @@
     <!-- TABLA DE RESULTADOS -->
     <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden z-0">
       <div class="px-5 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-        <h2 id="tituloTablaMatriz" class="font-bold text-xs text-slate-700">Matriz de Resultados Consolidada</h2>
+        <h2 id="tituloTablaMatriz" class="font-bold text-xs text-slate-700">Matriz de Resultados Consolidada (Supabase SQL)</h2>
         <span id="kpiCount" class="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">0 registros</span>
       </div>
       <div class="overflow-x-auto">
@@ -267,7 +251,7 @@
               <td colspan="15" class="py-16 text-center">
                 <div class="flex flex-col items-center justify-center text-blue-600">
                   <i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-3"></i>
-                  <span class="font-bold text-sm">Sincronizando Matriz Segura...</span>
+                  <span class="font-bold text-sm">Conectando con Supabase SQL...</span>
                 </div>
               </td>
             </tr>
@@ -285,7 +269,7 @@
 
   </main>
 
-  <!-- NUEVO: MODAL PARA EL DASHBOARD DE GRÁFICOS (CHART.JS) -->
+  <!-- MODAL DASHBOARD -->
   <div id="modalDashboard" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white rounded-2xl p-6 max-w-4xl w-full shadow-2xl space-y-4 modal-anim">
       <div class="flex justify-between items-center border-b pb-3">
@@ -369,18 +353,23 @@
     </div>
   </div>
 
-  <!-- SCRIPT CENTRAL -->
+  <!-- SCRIPT CONECTADO A SUPABASE -->
   <script>
-    // URL DE GOOGLE APPS SCRIPT
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwKUoOy17vZnjqKjk8FnjsM7riy2IyGWOgjKWGBjE5UnJSFdZnLsZoiZi9GeZFQtDfOxQ/exec';
-    const CACHE_KEY = 'HTST_DATA_CACHE'; // Llave para guardar offline
+    // =========================================================================
+    // CREDENCIALES DE SUPABASE
+    // =========================================================================
+    const SUPABASE_URL = 'https://dqkbqmsxdddorvatghpv.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_prSTMQbn-XQAwDpHj4HPcQ_1q_TaXpq'; 
+
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
     let datosGlobales = [];
     let datosFiltradosGlobales = [];
     let paginaActual = 1;
     const registrosPorPagina = 12;
     let regActual = null;
-    let kpiChartInstance = null; // Instancia de Chart.js
+    let kpiChartInstance = null; 
 
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
@@ -401,9 +390,6 @@
       }
     });
 
-    // =========================================================================
-    // GRÁFICOS: DASHBOARD INTERACTIVO
-    // =========================================================================
     function abrirModalDashboard(tipo) {
       let datosParaGrafico = [];
       let colorGrafico = '';
@@ -481,79 +467,35 @@
       }
     }
 
-    // =========================================================================
-    // SISTEMA DE CARGA PRO: EXPONENTIAL BACKOFF + CACHÉ DE RESPALDO (OFFLINE)
-    // =========================================================================
-    async function cargarDatosBD(intento = 1) {
+    async function cargarDatosBD() {
       const tbody = document.getElementById('tablaResultados');
-
-      if(tbody && intento === 1) {
-          tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-blue-600"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-3"></i><span class="font-bold text-sm">Descargando matriz segura...</span></div></td></tr>`;
+      if(tbody) {
+          tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-blue-600"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mb-3"></i><span class="font-bold text-sm">Consultando base de datos Supabase...</span></div></td></tr>`;
           lucide.createIcons();
       }
-      
+
       try {
-        const res = await fetch(APPS_SCRIPT_URL);
-        if(!res.ok) throw new Error(`Servidor ocupado (HTTP ${res.status})`);
+        const { data, error } = await db
+          .from('matriz_calidad')
+          .select('*')
+          .order('fecha_envio', { ascending: false });
+
+        if (error) throw error;
+
+        let rawData = data || [];
+        datosGlobales = rawData.map((row, index) => ({ ...row, frontend_id: index }));
         
-        const text = await res.text();
-        let json;
-        try {
-          json = JSON.parse(text);
-        } catch(parseErr) {
-          throw new Error("Respuesta inválida de Google (Sobrecarga temporal)");
-        }
-
-        if(json.status === 'SUCCESS') {
-          let rawData = json.data || [];
-          
-          rawData.sort((a, b) => {
-            const dA = a.fecha_envio ? new Date(a.fecha_envio).getTime() : 0;
-            const dB = b.fecha_envio ? new Date(b.fecha_envio).getTime() : 0;
-            return dB - dA;
-          });
-
-          datosGlobales = rawData.map((row, index) => ({ ...row, frontend_id: index }));
-          
-          // GUARDAR EN CACHÉ LOCAL
-          localStorage.setItem(CACHE_KEY, JSON.stringify(datosGlobales));
-
-          // Restaurar título normal si veníamos de un fallo
-          document.getElementById('tituloTablaMatriz').innerHTML = 'Matriz de Resultados Consolidada';
-
-          poblarFiltrosJerarquicos(); 
-          aplicarFiltros();
-        } else {
-          throw new Error("Error interno en la base de datos.");
-        }
+        poblarFiltrosJerarquicos(); 
+        aplicarFiltros();
       } catch (err) { 
-        console.warn(`Intento ${intento} fallido. Razón:`, err.message);
-        
-        if(intento < 3) {
-          // EXPONENTIAL BACKOFF: Espera 1.5s, luego 3s, para no saturar al servidor
-          const tiempoEspera = intento * 1500; 
-          setTimeout(() => cargarDatosBD(intento + 1), tiempoEspera);
-        } else {
-          // SISTEMA DE CONTINGENCIA: Caché Offline
-          const cachedData = localStorage.getItem(CACHE_KEY);
-          
-          if (cachedData) {
-            console.log("Activando Modo de Respaldo Local (Caché)");
-            datosGlobales = JSON.parse(cachedData);
-            document.getElementById('tituloTablaMatriz').innerHTML = 'Matriz de Resultados Consolidada <span class="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-[9px] rounded-full font-bold border border-amber-300">⚠️ Modo Respaldo (Offline)</span>';
-            poblarFiltrosJerarquicos(); 
-            aplicarFiltros();
-          } else if(tbody) {
-            tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-rose-500"><i data-lucide="wifi-off" class="w-8 h-8 mb-3"></i><span class="font-bold text-sm">Servidor fuera de línea y sin caché disponible. Reintenta más tarde.</span></div></td></tr>`;
+        console.error("Error en Supabase:", err.message);
+        if(tbody) {
+            tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-rose-500"><i data-lucide="x-circle" class="w-8 h-8 mb-3"></i><span class="font-bold text-sm">Error conectando a Supabase: ${err.message}</span></div></td></tr>`;
             lucide.createIcons();
-          }
         }
       }
     }
 
-    // =========================================================================
-    // LÓGICA DE VALIDACIÓN Y EVALUACIÓN
-    // =========================================================================
     function esFueraDeNorma(v) {
       if(!v) return false;
       const val = String(v).trim().toUpperCase();
@@ -602,14 +544,11 @@
       return `<span class="${colorClass}">${v}</span>`;
     }
 
-    // =========================================================================
-    // ACTUALIZACIÓN VISUAL Y RENDERIZADO DE TABLA
-    // =========================================================================
     function animarKPIsVisuales() {
       const boxes = document.querySelectorAll('.kpi-box');
       boxes.forEach(box => {
         box.classList.remove('anim-burst');
-        void box.offsetWidth; // Reflow forzar animación
+        void box.offsetWidth; 
         box.classList.add('anim-burst');
       });
     }
@@ -648,12 +587,11 @@
 
       if(!datos.length) { 
         thead.innerHTML = `<tr><th class="p-2.5">Matriz Vacía</th></tr>`;
-        tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-slate-400"><i data-lucide="inbox" class="w-10 h-10 mb-3 opacity-40"></i><span class="font-bold text-sm">No se encontraron registros que coincidan.</span></div></td></tr>`; 
+        tbody.innerHTML = `<tr><td colspan="15" class="py-16 text-center"><div class="flex flex-col items-center justify-center text-slate-400"><i data-lucide="inbox" class="w-10 h-10 mb-3 opacity-40"></i><span class="font-bold text-sm">No se encontraron registros en Supabase.</span></div></td></tr>`; 
         lucide.createIcons();
         return; 
       }
 
-      // Estructurar cabeceras
       if(filtroProc === 'UHT') {
         thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">Termóf.</th><th class="p-2.5 text-center bg-slate-200/50">Lácticas</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
       } else if(filtroProc === 'HTST') {
@@ -662,7 +600,6 @@
         thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">Term(u)<br>Colif(h)</th><th class="p-2.5 text-center bg-slate-200/50">Láct(u)<br>E.Coli(h)</th><th class="p-2.5 text-center bg-slate-200/50">S.Aur.</th><th class="p-2.5 text-center bg-slate-200/50">Entero.</th><th class="p-2.5 text-center bg-slate-200/50">Mohos</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
       }
 
-      // Estructurar filas
       tbody.innerHTML = datos.map(row => {
         const esUHT = row.tipo_proceso === 'UHT';
         const cuarentena = esLoteEnCuarentena(row);
@@ -698,48 +635,21 @@
         let fRowClasses = "hover:bg-blue-50/80 transition-colors duration-150 border-b group";
 
         if(filtroProc === 'UHT') {
-          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black text-cyan-700">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.arb_termofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.acido_lacticas)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id_registro}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black text-cyan-700">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.arb_termofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.acido_lacticas)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         } else if(filtroProc === 'HTST') {
-          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black text-blue-800">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.e_coli)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.enterobacterias)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id_registro}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black text-blue-800">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.e_coli)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.enterobacterias)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         } else {
-          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[140px]">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.arb_termofilos : row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.acido_lacticas : row.e_coli)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.enterobacterias)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id_registro}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[140px]">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.arb_termofilos : row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.acido_lacticas : row.e_coli)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.enterobacterias)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         }
       }).join('');
-      
       lucide.createIcons();
-    }
-
-    // =========================================================================
-    // MODALES Y ACTUALIZACIONES DE REGISTRO
-    // =========================================================================
-    function abrirModalManual() { 
-      document.getElementById('modalManual').classList.remove('hidden'); 
-    }
-
-    async function guardarRegistroManual() {
-      const esUHT = document.getElementById('mProceso').value === 'UHT';
-      const fechaEnvioHoy = document.getElementById('mFecha').value;
-      const nuevo = [{
-        tipo_proceso: esUHT ? 'UHT' : 'HTST',
-        fecha_envio: fechaEnvioHoy,
-        producto: document.getElementById('mProducto').value || 'Producto Manual',
-        lote: document.getElementById('mLote').value || 'LOTE00',
-        resultado_bromatologico: '✓',
-        coliformes_totales: esUHT ? '/' : '<10',
-        e_coli: '/', resiembra_coliformes: '/',
-        arb_mesofilos: '<10', arb_termofilos: esUHT ? '<10' : '/', acido_lacticas: esUHT ? '<10' : '/',
-        s_aureus: '/', enterobacterias: '/', resiembra_eb: '/', mohos_levaduras: '/',
-        responsable: 'RO', observaciones: '/', dictamen_final: 'CONFORME LIBERADO', fecha_liberacion: fechaEnvioHoy
-      }];
-      document.getElementById('modalManual').classList.add('hidden');
-      await enviarABaseDeDatos({ action: 'CREATE', data: nuevo });
     }
 
     function evaluarEnVivoModal() {
       const esUHT = regActual.tipo_proceso === 'UHT';
       let objSimulado = { ...regActual };
       
-      objSimulado.resultado_bromatologico = document.getElementById('gBromat').value;
+      objSimulado.resultado_bromatologico_produccion = document.getElementById('gBromat').value;
       if(esUHT) {
         objSimulado.arb_mesofilos = document.getElementById('gUHT_Meso').value;
         objSimulado.arb_termofilos = document.getElementById('gUHT_Termo').value;
@@ -829,7 +739,7 @@
             <tr class="bg-blue-50/20">
               <td class="p-2 font-black ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td>
               <td class="p-2 font-bold truncate max-w-[120px]" title="${row.producto}">${row.producto}</td>
-              <td class="p-2 text-center font-bold text-slate-500">${row.resultado_bromatologico||'✓'}</td>
+              <td class="p-2 text-center font-bold text-slate-500">${row.resultado_bromatologico_produccion||'✓'}</td>
               <td class="p-2 text-center bg-white border-x">${cMeso}</td>
               <td class="p-2 text-center bg-white border-r">${cTermColif}</td>
               <td class="p-2 text-center bg-white border-r">${cLactEcoli}</td>
@@ -858,14 +768,14 @@
 
       if(regActual.tipo_proceso === 'UHT') {
         cont.innerHTML = `
-          <div><label class="block mb-1 text-slate-500">Bromat.:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico||'✓'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
+          <div><label class="block mb-1 text-slate-500">Bromat.:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico_produccion||'✓'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
           <div><label class="block mb-1 text-slate-500">Mesófilos:</label><input type="text" id="gUHT_Meso" value="${regActual.arb_mesofilos||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
           <div><label class="block mb-1 text-slate-500">Termófilos:</label><input type="text" id="gUHT_Termo" value="${regActual.arb_termofilos||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
           <div><label class="block mb-1 text-slate-500">Lácticas:</label><input type="text" id="gUHT_Lact" value="${valLacticas||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
         `;
       } else { 
         cont.innerHTML = `
-          <div><label class="block mb-1 text-slate-500">Bromat.:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico||'✓'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
+          <div><label class="block mb-1 text-slate-500">Bromat.:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico_produccion||'✓'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
           <div><label class="block mb-1 text-slate-500">Coliformes:</label><input type="text" id="gHTST_Colif" value="${regActual.coliformes_totales||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
           <div><label class="block mb-1 text-slate-500">E. Coli:</label><input type="text" id="gHTST_Ecoli" value="${regActual.e_coli||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
           <div><label class="block mb-1 text-slate-500">Mesófilos:</label><input type="text" id="gHTST_Meso" value="${regActual.arb_mesofilos||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
@@ -903,7 +813,7 @@
     async function guardarGestionModal() {
       if(!regActual) return;
       
-      regActual.resultado_bromatologico = document.getElementById('gBromat').value;
+      regActual.resultado_bromatologico_produccion = document.getElementById('gBromat').value;
       if(regActual.tipo_proceso === 'UHT') {
         regActual.arb_mesofilos = document.getElementById('gUHT_Meso').value;
         regActual.arb_termofilos = document.getElementById('gUHT_Termo').value;
@@ -918,21 +828,85 @@
       }
 
       regActual.dictamen_final = document.getElementById('gDictamen').value;
-      regActual.fecha_liberacion = (regActual.dictamen_final === 'CONFORME LIBERADO') ? document.getElementById('gFechaLib').value : '';
+      regActual.fecha_liberacion = (regActual.dictamen_final === 'CONFORME LIBERADO') ? document.getElementById('gFechaLib').value : null;
       regActual.responsable = document.getElementById('gResp').value || '/';
       regActual.observaciones = document.getElementById('gObs').value || '/';
 
       document.getElementById('modalGestion').classList.add('hidden');
-      await enviarABaseDeDatos({ action: 'UPDATE', data: [regActual] });
+      
+      let datosParaActualizar = { ...regActual };
+      delete datosParaActualizar.frontend_id;
+
+      const { error } = await db
+        .from('matriz_calidad')
+        .update(datosParaActualizar)
+        .eq('id', regActual.id);
+
+      if (error) {
+        alert('Error al actualizar en Supabase: ' + error.message);
+      } else {
+        cargarDatosBD();
+      }
     }
 
-    async function eliminarRegistro(id) {
-      if(!confirm("¿Eliminar este registro de la base de datos?")) return;
-      await enviarABaseDeDatos({ action: 'DELETE', id_registro: id });
+    async function eliminarRegistro(idSupabase) {
+      if(!confirm("¿Eliminar este registro de la base de datos Supabase?")) return;
+      
+      const { error } = await db
+        .from('matriz_calidad')
+        .delete()
+        .eq('id', idSupabase);
+
+      if (error) {
+        alert('Error al eliminar: ' + error.message);
+      } else {
+        cargarDatosBD();
+      }
+    }
+
+    async function abrirModalManual() { 
+      document.getElementById('modalManual').classList.remove('hidden'); 
+    }
+
+    async function guardarRegistroManual() {
+      const esUHT = document.getElementById('mProceso').value === 'UHT';
+      const fechaEnvioHoy = document.getElementById('mFecha').value;
+      
+      const nuevo = {
+        tipo_proceso: esUHT ? 'UHT' : 'HTST',
+        fecha_envio: fechaEnvioHoy,
+        producto: document.getElementById('mProducto').value || 'Producto Manual',
+        lote: document.getElementById('mLote').value || 'LOTE00',
+        resultado_bromatologico_produccion: '✓',
+        resultado_bromatologico_liberacion: '/',
+        coliformes_totales: esUHT ? '/' : '<10',
+        e_coli: '/',
+        resiembra_coliformes: '/',
+        arb_mesofilos: '<10',
+        arb_termofilos: esUHT ? '<10' : '/',
+        acido_lacticas: esUHT ? '<10' : '/',
+        s_aureus: '/',
+        enterobacterias: '/',
+        resiembra_eb: '/',
+        mohos_levaduras: '/',
+        responsable: 'RO',
+        observaciones: '/',
+        dictamen_final: 'CONFORME LIBERADO',
+        fecha_liberacion: fechaEnvioHoy
+      };
+
+      document.getElementById('modalManual').classList.add('hidden');
+      
+      const { error } = await db.from('matriz_calidad').insert([nuevo]);
+      if (error) {
+        alert('Error al guardar registro manual: ' + error.message);
+      } else {
+        cargarDatosBD();
+      }
     }
 
     // =========================================================================
-    // INTELIGENCIA ARTIFICIAL Y COMUNICACIÓN CON BASE DE DATOS
+    // NUEVO PROMPT IA: ACTUALIZADO CON RESULTADO_BROMATOLOGICO_PRODUCCION
     // =========================================================================
     async function procesarArchivo() {
       const input = document.getElementById('fileInput');
@@ -948,40 +922,44 @@
       procesarConIA(input.files[0], key);
     }
 
-    async function procesarConIA(file, key, intento = 1) {
+    async function procesarConIA(file, key) {
       const msg = document.getElementById('statusMessage');
       msg.className = 'mt-2 text-xs text-blue-600 block font-bold';
-      msg.innerHTML = intento > 1 ? `<i data-lucide="loader" class="w-3 h-3 animate-spin inline mr-1"></i>Servidor ocupado. Reintentando (${intento}/3)...` : `<i data-lucide="cpu" class="w-3 h-3 inline mr-1"></i>Analizando matriz con IA...`;
+      msg.innerHTML = `<i data-lucide="cpu" class="w-3 h-3 inline mr-1"></i>Analizando matriz con IA y guardando en Supabase...`;
       lucide.createIcons();
 
       try {
         const raw = await toBase64(file);
         const base64Data = raw.split(',')[1];
+        
         const promptText = `Eres un auditor experto FSSC 22000. Analiza la matriz.
         TIPO: Detecta si es "UHT" o "HTST".
         REGLAS INFALIBLES PARA COLUMNAS:
         1. Valores microbiológicos DEBEN CONTENER SOLAMENTE: número, "<10", o "/". ¡CERO LETRAS! (A excepción de la palabra PENDIENTE).
-        2. Responsable: Las iniciales "EO", "RO" van SOLAMENTE en la propiedad "responsable".
+        2. Responsable: Las iniciales "EO", "RO", "LA", "SP", etc., van SOLAMENTE en la propiedad "responsable".
         
-        ESTRUCTURA EXACTA JSON REQUERIDA:
+        ESTRUCTURA EXACTA JSON REQUERIDA (incluye campos extraídos tal cual de la hoja):
         [{
           "tipo_proceso": "HTST o UHT",
           "fecha_envio": "YYYY-MM-DD",
           "producto": "nombre exacto",
           "lote": "lote exacto",
-          "resultado_bromatologico": "✓ o /",
+          "resultado_bromatologico_produccion": "✓ o /",
+          "resultado_bromatologico_liberacion": "✓ o /",
           "coliformes_totales": "<10 o /",
           "e_coli": "<10 o /",
+          "resiembra_coliformes": "<10 o /",
           "arb_mesofilos": "<10 o /",
           "arb_termofilos": "<10 o /",
           "acido_lacticas": "<10 o /",
           "s_aureus": "<10 o /",
           "enterobacterias": "<10 o /",
+          "resiembra_eb": "<10 o /",
           "mohos_levaduras": "<10 o /",
           "responsable": "EO, RO, etc.",
           "observaciones": "horas o /",
           "dictamen_final": "PENDIENTE",
-          "fecha_liberacion": ""
+          "fecha_liberacion": null
         }]
         DEVUELVE ÚNICA Y EXCLUSIVAMENTE EL ARREGLO JSON.`;
 
@@ -992,11 +970,6 @@
           body: JSON.stringify({ contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: file.type || 'image/jpeg', data: base64Data } }] }], generationConfig: { response_mime_type: "application/json" } })
         });
 
-        if(response.status === 503 && intento < 3) {
-          await new Promise(r => setTimeout(r, 2000));
-          return procesarConIA(file, key, intento + 1);
-        }
-
         if(!response.ok) throw new Error(`Error HTTP ${response.status}`);
         const resData = await response.json();
         if(resData.error) throw new Error(resData.error.message);
@@ -1006,48 +979,29 @@
         if(!Array.isArray(registros)) registros = [registros];
         
         const modo = document.getElementById('selectModoCarga').value;
-        registros = registros.map(r => { if(modo !== 'AUTO') r.tipo_proceso = modo; return r; });
-        await enviarABaseDeDatos({ action: 'CREATE', data: registros });
-      } catch(e) {
-        if(e.message.includes('503') && intento < 3) {
-          await new Promise(r => setTimeout(r, 2000));
-          return procesarConIA(file, key, intento + 1);
-        }
-        msg.className = 'mt-2 text-xs text-rose-600 block';
-        msg.innerText = 'Error de lectura IA: ' + e.message;
-      }
-    }
+        registros = registros.map(r => { 
+          if(modo !== 'AUTO') r.tipo_proceso = modo; 
+          if(!r.fecha_liberacion) r.fecha_liberacion = null;
+          return r; 
+        });
 
-    async function enviarABaseDeDatos(payload) {
-      const msg = document.getElementById('statusMessage');
-      if(msg) {
-        msg.className = 'mt-2 text-xs text-blue-600 block font-bold';
-        msg.innerHTML = `<i data-lucide="cloud-lightning" class="w-3 h-3 inline mr-1"></i>Sincronizando datos con Google Sheets...`;
+        const { error } = await db.from('matriz_calidad').insert(registros);
+        if(error) throw new Error(error.message);
+
+        msg.className = 'mt-2 text-xs text-emerald-600 block font-bold';
+        msg.innerHTML = '<i data-lucide="check-circle-2" class="w-3 h-3 inline mr-1"></i>¡Registros de IA guardados en Supabase con éxito!';
         lucide.createIcons();
-      }
-      try {
-        await fetch(APPS_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-        if(msg) {
-          msg.className = 'mt-2 text-xs text-emerald-600 block font-bold';
-          msg.innerHTML = '<i data-lucide="check-circle-2" class="w-3 h-3 inline mr-1"></i>Matriz guardada exitosamente.';
-          lucide.createIcons();
-        }
         document.getElementById('fileInput').value = '';
-        setTimeout(() => cargarDatosBD(), 1200); // Forzamos recarga
-      } catch(err) { 
-        if(msg) msg.innerText = 'Error al enviar a la nube.'; 
+        setTimeout(() => cargarDatosBD(), 1000);
+      } catch(e) {
+        msg.className = 'mt-2 text-xs text-rose-600 block';
+        msg.innerText = 'Error de lectura IA / Supabase: ' + e.message;
       }
     }
 
     const toBase64 = file => new Promise((resolve) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); });
     
-    // =========================================================================
-    // FILTROS, BÚSQUEDA Y PAGINACIÓN
-    // =========================================================================
-    function toggleDropdown() {
-      document.getElementById('dropdownList').classList.toggle('hidden');
-    }
-
+    function toggleDropdown() { document.getElementById('dropdownList').classList.toggle('hidden'); }
     function seleccionarProducto(val, texto) {
       document.getElementById('filterProducto').value = val;
       document.getElementById('dropdownText').innerText = texto;
@@ -1110,7 +1064,7 @@
 
     function renderPagina() {
       const ini = (paginaActual - 1) * registrosPorPagina;
-      renderTabla(datosFiltradosGlobales.slice(ini, ini + registrosPorPagina));
+      renderTabla(datosFiltradosGlobales.slice(ini, ini + registrosPrPagina));
       const tot = datosFiltradosGlobales.length;
       document.getElementById('infoPaginacion').innerText = `Mostrando ${tot===0?0:ini+1} al ${Math.min(ini+registrosPorPagina, tot)} de ${tot}`;
       document.getElementById('btnAnt').disabled = paginaActual === 1;
