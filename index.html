@@ -906,7 +906,7 @@
     }
 
     // =========================================================================
-    // NUEVO PROMPT IA: ACTUALIZADO CON RESULTADO_BROMATOLOGICO_PRODUCCION
+    // PROMPT IA
     // =========================================================================
     async function procesarArchivo() {
       const input = document.getElementById('fileInput');
@@ -1064,7 +1064,7 @@
 
     function renderPagina() {
       const ini = (paginaActual - 1) * registrosPorPagina;
-      renderTabla(datosFiltradosGlobales.slice(ini, ini + registrosPrPagina));
+      renderTabla(datosFiltradosGlobales.slice(ini, ini + registrosPorPagina));
       const tot = datosFiltradosGlobales.length;
       document.getElementById('infoPaginacion').innerText = `Mostrando ${tot===0?0:ini+1} al ${Math.min(ini+registrosPorPagina, tot)} de ${tot}`;
       document.getElementById('btnAnt').disabled = paginaActual === 1;
