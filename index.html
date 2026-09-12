@@ -233,7 +233,8 @@
         <span id="kpiCount" class="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">0 registros</span>
       </div>
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-[11px] min-w-[1200px]">
+        <!-- SE AMPLIO EL MIN-WIDTH PARA ACOMODAR LAS NUEVAS COLUMNAS -->
+        <table class="w-full text-left text-[11px] min-w-[1350px]">
           <thead id="tablaCabecera" class="bg-slate-100 text-slate-500 uppercase font-bold border-b text-[10px]"></thead>
           <tbody id="tablaResultados" class="divide-y divide-slate-100">
             <tr>
@@ -280,7 +281,6 @@
       <div class="pt-3 flex justify-between shrink-0 items-center border-t border-slate-100">
          <span class="text-[10px] text-indigo-600 font-bold bg-indigo-50 px-3 py-1 rounded-full">* Orden Ascendente (según tus filtros actuales)</span>
         <div class="flex items-center gap-2">
-          <!-- BOTÓN PARA LIMPIAR SELECCIÓN / RESTABLECER FILTRO -->
           <button onclick="limpiarFiltroLoteBase()" class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold rounded-lg transition-colors shadow-sm flex items-center gap-1.5">
             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Limpiar Selección
           </button>
@@ -310,7 +310,7 @@
 
   <!-- MODAL GESTIÓN -->
   <div id="modalGestion" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-2xl p-5 max-w-4xl w-full shadow-2xl space-y-3 max-h-[95vh] overflow-y-auto modal-anim">
+    <div class="bg-white rounded-2xl p-5 max-w-5xl w-full shadow-2xl space-y-3 max-h-[95vh] overflow-y-auto modal-anim">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5 text-blue-600"></i> Corregir Parámetros y Liberar Lote</h3>
         <button onclick="document.getElementById('modalGestion').classList.add('hidden')" class="text-slate-400 font-bold text-lg hover:text-rose-600 transition-colors">✕</button>
@@ -321,7 +321,7 @@
       </div>
       <div class="bg-white border border-slate-200 rounded-lg p-3">
         <h4 class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Resultados Microbiológicos (Modificables)</h4>
-        <div id="gCamposDinamicos" class="grid grid-cols-3 md:grid-cols-4 gap-2 text-[11px]"></div>
+        <div id="gCamposDinamicos" class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 text-[11px]"></div>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-[11px]">
         <div class="md:col-span-2">
@@ -408,7 +408,6 @@
       }
     });
 
-    // -------- FUNCIONES DE LOTES BASE (ORDEN ASCENDENTE Y LIMPIEZA) --------
     function extraerLoteBase(loteStr) {
       if(!loteStr) return 'S/N';
       const match = String(loteStr).match(/L\d+/i);
@@ -417,13 +416,11 @@
 
     function abrirModalLotesBase() {
       const setLotes = new Set();
-      // Se extraen los Lotes Base desde los datos actualmente en pantalla
       datosFiltradosGlobales.forEach(r => {
          const lb = extraerLoteBase(r.lote);
          if(lb && lb !== 'S/N' && lb !== '/') setLotes.add(lb);
       });
       
-      // CORRECCIÓN 1: ORDEN ASCENDENTE (Numérico y Alfabético Natural)
       const arrayLotes = Array.from(setLotes).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })); 
       const grid = document.getElementById('gridLotesBase');
       
@@ -453,13 +450,11 @@
       }, 800);
     }
 
-    // CORRECCIÓN 2: FUNCIÓN PARA LIMPIAR LA SELECCIÓN DE LOTE
     function limpiarFiltroLoteBase() {
       document.getElementById('busquedaTexto').value = '';
       aplicarFiltros();
       document.getElementById('modalLotesBase').classList.add('hidden');
     }
-    // ------------------------------------------------------------------------
 
     function abrirModalDashboard(tipo) {
       let datosParaGrafico = [];
@@ -670,6 +665,7 @@
       animarKPIsVisuales();
     }
 
+    // ==== ACTUALIZACIÓN: COLUMNAS DE RESIEMBRA ====
     function renderTabla(datos) {
       const filtroProc = document.getElementById('filterProceso').value;
       const thead = document.getElementById('tablaCabecera');
@@ -686,9 +682,11 @@
       if(filtroProc === 'UHT') {
         thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">Termóf.</th><th class="p-2.5 text-center bg-slate-200/50">Lácticas</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
       } else if(filtroProc === 'HTST') {
-        thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Colif.</th><th class="p-2.5 text-center bg-slate-200/50">E.Coli</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">S.Aur.</th><th class="p-2.5 text-center bg-slate-200/50">Entero.</th><th class="p-2.5 text-center bg-slate-200/50">Mohos</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
+        // HTST AHORA INCLUYE LAS DOS COLUMNAS DE RESIEMBRA (Res.Colif y Res.EB)
+        thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Colif.</th><th class="p-2.5 text-center bg-slate-200/50">E.Coli</th><th class="p-2.5 text-center bg-indigo-100/50 text-indigo-800">Res.Colif</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">S.Aur.</th><th class="p-2.5 text-center bg-slate-200/50">Entero.</th><th class="p-2.5 text-center bg-indigo-100/50 text-indigo-800">Res.EB</th><th class="p-2.5 text-center bg-slate-200/50">Mohos</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
       } else {
-        thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">Term(u)<br>Colif(h)</th><th class="p-2.5 text-center bg-slate-200/50">Láct(u)<br>E.Coli(h)</th><th class="p-2.5 text-center bg-slate-200/50">S.Aur.</th><th class="p-2.5 text-center bg-slate-200/50">Entero.</th><th class="p-2.5 text-center bg-slate-200/50">Mohos</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
+        // TODOS LOS PROCESOS AHORA INCLUYEN COLUMNAS DE RESIEMBRA
+        thead.innerHTML = `<tr><th class="p-2.5 w-12">Proc.</th><th class="p-2.5">F. Envío</th><th class="p-2.5">Producto</th><th class="p-2.5">Lote</th><th class="p-2.5 text-center">Brom.</th><th class="p-2.5 text-center bg-slate-200/50">Mesóf.</th><th class="p-2.5 text-center bg-slate-200/50">Term(u)<br>Colif(h)</th><th class="p-2.5 text-center bg-indigo-100/50 text-indigo-800">Res(h)</th><th class="p-2.5 text-center bg-slate-200/50">Láct(u)<br>E.Coli(h)</th><th class="p-2.5 text-center bg-slate-200/50">S.Aur.</th><th class="p-2.5 text-center bg-slate-200/50">Entero.</th><th class="p-2.5 text-center bg-indigo-100/50 text-indigo-800">Res(h)</th><th class="p-2.5 text-center bg-slate-200/50">Mohos</th><th class="p-2.5 text-center border-l bg-amber-50">Resp.</th><th class="p-2.5 text-center border-l text-emerald-700">F. Lib.</th><th class="p-2.5 text-center">Dictamen</th><th class="p-2.5 text-center">🗑️</th></tr>`;
       }
 
       tbody.innerHTML = datos.map(row => {
@@ -725,12 +723,13 @@
 
         let fRowClasses = "hover:bg-blue-50/80 transition-colors duration-150 border-b group";
 
+        // CELDAS CON RESIEMBRAS AGREGADAS
         if(filtroProc === 'UHT') {
           return `<tr class="${fRowClasses}"><td class="p-2.5 font-black text-cyan-700">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.arb_termofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.acido_lacticas)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button type="button" onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         } else if(filtroProc === 'HTST') {
-          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black text-blue-800">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.e_coli)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.enterobacterias)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button type="button" onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black text-blue-800">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[180px]" title="${row.producto}">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.e_coli)}</td><td class="p-2.5 text-center bg-indigo-50/50 group-hover:bg-transparent border-r">${renderCeldaMatriz(row.resiembra_coliformes)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.enterobacterias)}</td><td class="p-2.5 text-center bg-indigo-50/50 group-hover:bg-transparent border-r">${renderCeldaMatriz(row.resiembra_eb)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button type="button" onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         } else {
-          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[140px]">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.arb_termofilos : row.coliformes_totales)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.acido_lacticas : row.e_coli)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.enterobacterias)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button type="button" onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
+          return `<tr class="${fRowClasses}"><td class="p-2.5 font-black ${esUHT?'text-cyan-700':'text-blue-800'}">${row.tipo_proceso}</td><td class="p-2.5 font-medium whitespace-nowrap">${row.fecha_envio ? String(row.fecha_envio).substring(0,10) : ''}</td><td class="p-2.5 font-bold text-[11px] truncate max-w-[140px]">${row.producto}${cObs}</td><td class="p-2.5 font-mono text-blue-600 font-bold">${row.lote}</td><td class="p-2.5 text-center font-bold text-slate-500 bg-slate-50 group-hover:bg-transparent">${row.resultado_bromatologico_produccion||'✓'}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-x">${renderCeldaMatriz(row.arb_mesofilos)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.arb_termofilos : row.coliformes_totales)}</td><td class="p-2.5 text-center bg-indigo-50/50 group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.resiembra_coliformes)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? row.acido_lacticas : row.e_coli)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.s_aureus)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.enterobacterias)}</td><td class="p-2.5 text-center bg-indigo-50/50 group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.resiembra_eb)}</td><td class="p-2.5 text-center bg-white group-hover:bg-transparent border-r">${renderCeldaMatriz(esUHT ? '-' : row.mohos_levaduras)}</td><td class="p-2.5 text-center border-l bg-amber-50/50 group-hover:bg-transparent">${cResp}</td><td class="p-2.5 text-center whitespace-nowrap border-l">${txtFechaLib}</td><td class="p-2.5"><button type="button" onclick="abrirModalGestion(${row.frontend_id})" class="px-2 py-1.5 rounded-lg text-[10px] font-black border transition w-full shadow-sm ${claseDict} truncate">${dict} ✏️</button></td><td class="p-2.5 text-center"><button onclick="eliminarRegistro('${row.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td></tr>`;
         }
       }).join('');
       lucide.createIcons();
@@ -747,10 +746,12 @@
         objSimulado.acido_lacticas = document.getElementById('gUHT_Lact').value;
       } else {
         objSimulado.coliformes_totales = document.getElementById('gHTST_Colif').value;
+        objSimulado.resiembra_coliformes = document.getElementById('gHTST_ResColif').value; // NUEVO
         objSimulado.e_coli = document.getElementById('gHTST_Ecoli').value;
         objSimulado.arb_mesofilos = document.getElementById('gHTST_Meso').value;
         objSimulado.s_aureus = document.getElementById('gHTST_Aur').value;
         objSimulado.enterobacterias = document.getElementById('gHTST_Entero').value;
+        objSimulado.resiembra_eb = document.getElementById('gHTST_ResEB').value; // NUEVO
         objSimulado.mohos_levaduras = document.getElementById('gHTST_Mohos').value;
       }
       objSimulado.responsable = document.getElementById('gResp').value;
@@ -802,6 +803,8 @@
       let cAur = renderCeldaMatriz(esUHT ? '-' : row.s_aureus);
       let cEntero = renderCeldaMatriz(esUHT ? '-' : row.enterobacterias);
       let cMohos = renderCeldaMatriz(esUHT ? '-' : row.mohos_levaduras);
+      let cResColif = renderCeldaMatriz(esUHT ? '-' : row.resiembra_coliformes); // NUEVO
+      let cResEB = renderCeldaMatriz(esUHT ? '-' : row.resiembra_eb); // NUEVO
       
       let respFinal = row.responsable;
       if((!respFinal || respFinal === '/') && /^[A-Za-z]+$/.test(String(row.acido_lacticas||'').trim()) && row.acido_lacticas !== 'PENDIENTE') respFinal = row.acido_lacticas;
@@ -815,7 +818,7 @@
       else dictBtn = `<span class="bg-emerald-100 text-emerald-800 border-emerald-400 px-2 py-1 rounded text-[9px] font-black border">✓ LIBERADO</span>`;
 
       contenedor.innerHTML = `
-        <table class="w-full text-left text-[10px] min-w-[700px]">
+        <table class="w-full text-left text-[10px] min-w-[850px]">
           <thead class="bg-slate-100 text-slate-500 uppercase font-bold border-b">
             <tr>
               <th class="p-2 w-10">Proc.</th>
@@ -823,8 +826,9 @@
               <th class="p-2 text-center">Brom.</th>
               <th class="p-2 text-center">Mesóf.</th>
               <th class="p-2 text-center">${esUHT?'Termóf.':'Colif.'}</th>
+              ${!esUHT ? `<th class="p-2 text-center text-indigo-600 bg-indigo-50">Res.Colif</th>` : ''}
               <th class="p-2 text-center">${esUHT?'Láct.':'E.Coli'}</th>
-              ${!esUHT ? `<th class="p-2 text-center">S.Aur.</th><th class="p-2 text-center">Entero.</th><th class="p-2 text-center">Mohos</th>` : ''}
+              ${!esUHT ? `<th class="p-2 text-center">S.Aur.</th><th class="p-2 text-center">Entero.</th><th class="p-2 text-center text-indigo-600 bg-indigo-50">Res.EB</th><th class="p-2 text-center">Mohos</th>` : ''}
               <th class="p-2 text-center border-l bg-amber-50">Resp.</th>
               <th class="p-2 text-center border-l text-emerald-700">F. Lib.</th>
               <th class="p-2 text-center">Dictamen</th>
@@ -837,8 +841,9 @@
               <td class="p-2 text-center font-bold text-slate-500">${row.resultado_bromatologico_produccion||'✓'}</td>
               <td class="p-2 text-center bg-white border-x">${cMeso}</td>
               <td class="p-2 text-center bg-white border-r">${cTermColif}</td>
+              ${!esUHT ? `<td class="p-2 text-center bg-indigo-50/50 border-r">${cResColif}</td>` : ''}
               <td class="p-2 text-center bg-white border-r">${cLactEcoli}</td>
-              ${!esUHT ? `<td class="p-2 text-center bg-white border-r">${cAur}</td><td class="p-2 text-center bg-white border-r">${cEntero}</td><td class="p-2 text-center bg-white border-r">${cMohos}</td>` : ''}
+              ${!esUHT ? `<td class="p-2 text-center bg-white border-r">${cAur}</td><td class="p-2 text-center bg-white border-r">${cEntero}</td><td class="p-2 text-center bg-indigo-50/50 border-r">${cResEB}</td><td class="p-2 text-center bg-white border-r">${cMohos}</td>` : ''}
               <td class="p-2 text-center border-l bg-amber-50/50">${cResp}</td>
               <td class="p-2 text-center border-l whitespace-nowrap">${txtFechaLib}</td>
               <td class="p-2 text-center">${dictBtn}</td>
@@ -869,13 +874,16 @@
           <div><label class="block mb-1 text-slate-500">Lácticas:</label><input type="text" id="gUHT_Lact" value="${valLacticas||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
         `;
       } else { 
+        // HTST AHORA MUESTRA CAMPOS DE RESIEMBRA
         cont.innerHTML = `
           <div><label class="block mb-1 text-slate-500">Bromat.:</label><input type="text" id="gBromat" value="${regActual.resultado_bromatologico_produccion||'✓'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
           <div><label class="block mb-1 text-slate-500">Coliformes:</label><input type="text" id="gHTST_Colif" value="${regActual.coliformes_totales||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
+          <div><label class="block mb-1 text-indigo-500">Res. Colif:</label><input type="text" id="gHTST_ResColif" value="${regActual.resiembra_coliformes||'/'}" class="w-full p-2 border border-indigo-200 rounded font-bold text-center text-indigo-800 bg-indigo-50 outline-none focus:ring-2 focus:ring-indigo-300 transition-all"></div>
           <div><label class="block mb-1 text-slate-500">E. Coli:</label><input type="text" id="gHTST_Ecoli" value="${regActual.e_coli||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
           <div><label class="block mb-1 text-slate-500">Mesófilos:</label><input type="text" id="gHTST_Meso" value="${regActual.arb_mesofilos||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
           <div><label class="block mb-1 text-slate-500">S. Aureus:</label><input type="text" id="gHTST_Aur" value="${regActual.s_aureus||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
           <div><label class="block mb-1 text-slate-500">Enterobact.:</label><input type="text" id="gHTST_Entero" value="${regActual.enterobacterias||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
+          <div><label class="block mb-1 text-indigo-500">Res. EB:</label><input type="text" id="gHTST_ResEB" value="${regActual.resiembra_eb||'/'}" class="w-full p-2 border border-indigo-200 rounded font-bold text-center text-indigo-800 bg-indigo-50 outline-none focus:ring-2 focus:ring-indigo-300 transition-all"></div>
           <div><label class="block mb-1 text-slate-500">Mohos/Lev.:</label><input type="text" id="gHTST_Mohos" value="${regActual.mohos_levaduras||'/'}" class="w-full p-2 border border-slate-300 rounded font-bold text-center text-blue-800 outline-none focus:ring-2 focus:ring-blue-100 transition-all"></div>
         `;
       }
@@ -917,10 +925,12 @@
         regActual.acido_lacticas = document.getElementById('gUHT_Lact').value;
       } else {
         regActual.coliformes_totales = document.getElementById('gHTST_Colif').value;
+        regActual.resiembra_coliformes = document.getElementById('gHTST_ResColif').value; // NUEVO
         regActual.e_coli = document.getElementById('gHTST_Ecoli').value;
         regActual.arb_mesofilos = document.getElementById('gHTST_Meso').value;
         regActual.s_aureus = document.getElementById('gHTST_Aur').value;
         regActual.enterobacterias = document.getElementById('gHTST_Entero').value;
+        regActual.resiembra_eb = document.getElementById('gHTST_ResEB').value; // NUEVO
         regActual.mohos_levaduras = document.getElementById('gHTST_Mohos').value;
       }
 
