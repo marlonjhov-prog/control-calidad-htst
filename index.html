@@ -8,7 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
-  <!-- CLIENTE OFICIAL DE SUPABASE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <style>
@@ -122,7 +121,7 @@
       <div id="keyStatus" class="text-[11px]"></div>
     </section>
 
-    <!-- DASHBOARD DE KPIS EJECUTIVOS INTERACTIVOS -->
+    <!-- DASHBOARD DE KPIS -->
     <section class="grid grid-cols-2 md:grid-cols-6 gap-3">
       <div onclick="abrirModalDashboard('TOTAL')" class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between transition-all hover:shadow-lg hover:scale-[1.02] hover:border-blue-300 cursor-pointer group">
         <div>
@@ -308,8 +307,8 @@
           <select id="gDictamen" class="w-full p-2 border-2 rounded-lg font-black transition-colors shadow-sm cursor-not-allowed pointer-events-none"></select>
         </div>
         <div>
-          <label class="block font-bold text-slate-700 mb-1">F. Liberación (Cierre):</label>
-          <input type="date" id="gFechaLib" class="w-full p-2 border border-slate-300 rounded-lg bg-slate-50 font-bold outline-none focus:ring-2 focus:ring-blue-200 transition-all">
+          <label class="block font-bold text-slate-700 mb-1">F. Liberación (Análisis/Actualización):</label>
+          <input type="date" id="gFechaLib" class="w-full p-2 border border-slate-300 rounded-lg bg-white font-bold outline-none focus:ring-2 focus:ring-blue-200 transition-all">
         </div>
         <div>
           <label class="block font-bold text-slate-700 mb-1">Responsable:</label>
@@ -353,11 +352,8 @@
     </div>
   </div>
 
-  <!-- SCRIPT CONECTADO A SUPABASE -->
+  <!-- SCRIPT -->
   <script>
-    // =========================================================================
-    // CREDENCIALES DE SUPABASE
-    // =========================================================================
     const SUPABASE_URL = 'https://dqkbqmsxdddorvatghpv.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_prSTMQbn-XQAwDpHj4HPcQ_1q_TaXpq'; 
 
@@ -467,7 +463,6 @@
       }
     }
 
-    // CARGA MASIVA TOTAL SIN LÍMITE DE 1000 REGISTROS (AUDITORÍA FSSC 22000)
     async function cargarDatosBD() {
       const tbody = document.getElementById('tablaResultados');
       if(tbody) {
@@ -505,7 +500,6 @@
         }
 
         datosGlobales = allData.map((row, index) => ({ ...row, frontend_id: index }));
-        
         poblarFiltrosJerarquicos(); 
         aplicarFiltros();
       } catch (err) { 
@@ -517,6 +511,8 @@
       }
     }
 
+    // Regla estricta: Solo hay fuera de norma si el valor es numérico >= 10.
+    // Si es '✓', '<10', '-', '/', o pendiente, NO es fuera de norma.
     function esFueraDeNorma(v) {
       if(!v) return false;
       const val = String(v).trim().toUpperCase();
@@ -645,13 +641,7 @@
         let cObs = (row.observaciones && row.observaciones !== '/' && !String(row.observaciones).includes('1899-')) ? `<br><span class="text-[9px] text-slate-400 italic block truncate max-w-[120px]">${row.observaciones}</span>` : '';
 
         let fLib = row.fecha_liberacion;
-        if (!cuarentena && !pendiente && (!fLib || fLib === '-' || fLib === '')) {
-          fLib = row.fecha_envio;
-        } else if ((cuarentena || pendiente) && (!fLib || fLib === '-')) {
-          fLib = '';
-        }
-
-        let txtFechaLib = (fLib && fLib !== '-' && fLib !== '') ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
+        let txtFechaLib = (fLib && fLib !== '-' && fLib !== '' && !cuarentena && !pendiente) ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
 
         let fRowClasses = "hover:bg-blue-50/80 transition-colors duration-150 border-b group";
 
@@ -707,8 +697,9 @@
           estadoVivo = 'CONFORME LIBERADO';
           selectDict.value = 'CONFORME LIBERADO';
           selectDict.className = "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800 transition-colors cursor-not-allowed pointer-events-none";
-          if(!inputFechaLib.value) {
-            inputFechaLib.value = objSimulado.fecha_envio ? String(objSimulado.fecha_envio).substring(0, 10) : new Date().toISOString().substring(0, 10);
+          // Si pasa a liberado y no tenía fecha de liberación previa, se sugiere la fecha de hoy para que el usuario pueda cambiarla libremente
+          if(!inputFechaLib.value || inputFechaLib.value === '') {
+            inputFechaLib.value = regActual.fecha_liberacion ? String(regActual.fecha_liberacion).substring(0, 10) : new Date().toISOString().substring(0, 10);
           }
       }
 
@@ -815,10 +806,8 @@
       document.getElementById('gResp').value = respVal || '';
       document.getElementById('gObs').value = obsFinal;
       
-      let fechaLibVal = regActual.fecha_liberacion ? String(regActual.fecha_liberacion).substring(0, 10) : '';
-      if(!fechaLibVal && !esLoteEnCuarentena(regActual) && !tieneResultadosPendientes(regActual)) {
-        fechaLibVal = regActual.fecha_envio ? String(regActual.fecha_envio).substring(0, 10) : new Date().toISOString().substring(0, 10);
-      }
+      // Mantiene la fecha de liberación previamente guardada si existe, de lo contrario pone la fecha actual
+      let fechaLibVal = regActual.fecha_liberacion ? String(regActual.fecha_liberacion).substring(0, 10) : new Date().toISOString().substring(0, 10);
       document.getElementById('gFechaLib').value = fechaLibVal;
       
       const campos = cont.querySelectorAll('input');
@@ -849,6 +838,7 @@
       }
 
       regActual.dictamen_final = document.getElementById('gDictamen').value;
+      // Respeta y guarda la fecha seleccionada por el usuario en el input sin sobrescribirla con la fecha de envío
       regActual.fecha_liberacion = (regActual.dictamen_final === 'CONFORME LIBERADO') ? document.getElementById('gFechaLib').value : null;
       regActual.responsable = document.getElementById('gResp').value || '/';
       regActual.observaciones = document.getElementById('gObs').value || '/';
@@ -926,9 +916,6 @@
       }
     }
 
-    // =========================================================================
-    // PROMPT IA CON PROTECCIÓN DE TIMEOUT
-    // =========================================================================
     async function procesarArchivo() {
       const input = document.getElementById('fileInput');
       if(!input.files.length) return alert('Selecciona una imagen.');
@@ -1045,7 +1032,6 @@
       aplicarFiltros();
     }
 
-    // EXTRACTOR DE AÑOS ROBUSTO PARA AUDITORÍA (INCLUYE 2025 Y 2026)
     function poblarFiltrosJerarquicos() {
       const productos = [...new Set(datosGlobales.map(d => d.producto).filter(Boolean))].sort();
       const list = document.getElementById('dropdownList');
