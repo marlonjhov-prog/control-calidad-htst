@@ -520,8 +520,6 @@
       return false;
     }
 
-    // REGLA CLAVE CORREGIDA: Solo es pendiente si dice explícitamente "PENDIENTE" o está vacío. 
-    // Si tiene barra "/", check "✓", guion "-", o "<10", se considera CONFORME / LIBERADO.
     function esPendiente(v) { 
       const val = String(v||'').trim().toUpperCase();
       return val === 'PENDIENTE' || val === 'PENDIENTE RESULTADOS';
@@ -639,8 +637,15 @@
         let cResp = (respFinal && respFinal !== '/') ? `<span class="font-black text-amber-700">${respFinal}</span>` : '<span class="text-slate-300">/</span>';
         let cObs = (row.observaciones && row.observaciones !== '/' && !String(row.observaciones).includes('1899-')) ? `<br><span class="text-[9px] text-slate-400 italic block truncate max-w-[120px]">${row.observaciones}</span>` : '';
 
+        // REGLA DE NEGOCIO F. LIB: Si está en cuarentena o pendiente va vacío (-). Si está liberado, muestra fecha de liberación o de envío.
         let fLib = row.fecha_liberacion;
-        let txtFechaLib = (fLib && fLib !== '-' && fLib !== '' && !cuarentena && !pendiente) ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
+        if (!cuarentena && !pendiente && (!fLib || fLib === '-' || fLib === '')) {
+          fLib = row.fecha_envio;
+        } else if (cuarentena || pendiente) {
+          fLib = '';
+        }
+
+        let txtFechaLib = (fLib && fLib !== '-' && fLib !== '') ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
 
         let fRowClasses = "hover:bg-blue-50/80 transition-colors duration-150 border-b group";
 
@@ -686,17 +691,20 @@
           estadoVivo = 'EN CUARENTENA';
           selectDict.value = 'EN CUARENTENA';
           selectDict.className = "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800 transition-colors cursor-not-allowed pointer-events-none";
+          inputFechaLib.value = ''; 
       } else if (pendiente) {
           estadoVivo = 'PENDIENTE RESULTADOS';
           selectDict.value = 'PENDIENTE RESULTADOS';
           selectDict.className = "w-full p-2 border-2 border-amber-400 rounded-lg bg-amber-50 font-black text-amber-800 transition-colors cursor-not-allowed pointer-events-none";
+          inputFechaLib.value = ''; 
       } else {
           estadoVivo = 'CONFORME LIBERADO';
           selectDict.value = 'CONFORME LIBERADO';
           selectDict.className = "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800 transition-colors cursor-not-allowed pointer-events-none";
-          // Si pasa a liberado y no tiene fecha escrita, le asigna la fecha actual para previsualización inmediata en F. Lib.
+          
+          // Si pasa a liberado, previsualiza la fecha de liberación existente o la fecha de envío/hoy por defecto
           if(!inputFechaLib.value || inputFechaLib.value === '') {
-            inputFechaLib.value = regActual.fecha_liberacion ? String(regActual.fecha_liberacion).substring(0, 10) : new Date().toISOString().substring(0, 10);
+            inputFechaLib.value = regActual.fecha_liberacion || regActual.fecha_envio ? String(regActual.fecha_liberacion || regActual.fecha_envio).substring(0, 10) : new Date().toISOString().substring(0, 10);
           }
       }
 
@@ -721,7 +729,7 @@
       if((!respFinal || respFinal === '/') && /^[A-Za-z]+$/.test(String(row.acido_lacticas||'').trim()) && row.acido_lacticas !== 'PENDIENTE') respFinal = row.acido_lacticas;
       let cResp = (respFinal && respFinal !== '/') ? `<span class="font-black text-amber-700">${respFinal}</span>` : '<span class="text-slate-300">/</span>';
       
-      let txtFechaLib = row.fecha_liberacion ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(row.fecha_liberacion).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
+      let txtFechaLib = (row.fecha_liberacion && estado === 'CONFORME LIBERADO') ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(row.fecha_liberacion).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
 
       let dictBtn = '';
       if(estado === 'EN CUARENTENA') dictBtn = `<span class="bg-rose-100 text-rose-800 border-rose-400 px-2 py-1 rounded text-[9px] font-black border">⚠️ CUARENTENA</span>`;
@@ -803,7 +811,11 @@
       document.getElementById('gResp').value = respVal || '';
       document.getElementById('gObs').value = obsFinal;
       
-      let fechaLibVal = regActual.fecha_liberacion ? String(regActual.fecha_liberacion).substring(0, 10) : new Date().toISOString().substring(0, 10);
+      // Si ya está liberado y tiene fecha de liberación previa, se muestra; si no, muestra fecha actual para edición
+      let fechaLibVal = '';
+      if(!esLoteEnCuarentena(regActual) && !tieneResultadosPendientes(regActual)) {
+        fechaLibVal = regActual.fecha_liberacion ? String(regActual.fecha_liberacion).substring(0, 10) : (regActual.fecha_envio ? String(regActual.fecha_envio).substring(0, 10) : new Date().toISOString().substring(0, 10));
+      }
       document.getElementById('gFechaLib').value = fechaLibVal;
       
       const campos = cont.querySelectorAll('input');
@@ -834,6 +846,7 @@
       }
 
       regActual.dictamen_final = document.getElementById('gDictamen').value;
+      // Si el dictamen es liberado, guarda la fecha elegida en el input; si está pendiente o cuarentena, guarda null (vacío)
       regActual.fecha_liberacion = (regActual.dictamen_final === 'CONFORME LIBERADO') ? document.getElementById('gFechaLib').value : null;
       regActual.responsable = document.getElementById('gResp').value || '/';
       regActual.observaciones = document.getElementById('gObs').value || '/';
@@ -999,7 +1012,12 @@
         const modo = document.getElementById('selectModoCarga').value;
         registros = registros.map(r => { 
           if(modo !== 'AUTO') r.tipo_proceso = modo; 
-          if(!r.fecha_liberacion) r.fecha_liberacion = null;
+          // Si el lote viene sin errores pendientes al cargar, le asigna F. Envío como fecha de liberación inicial
+          if(!tieneResultadosPendientes(r) && !esLoteEnCuarentena(r) && !r.fecha_liberacion) {
+            r.fecha_liberacion = r.fecha_envio || new Date().toISOString().substring(0, 10);
+          } else if (tieneResultadosPendientes(r) || esLoteEnCuarentena(r)) {
+            r.fecha_liberacion = null;
+          }
           return r; 
         });
 
