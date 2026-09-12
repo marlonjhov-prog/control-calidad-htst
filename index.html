@@ -637,12 +637,12 @@
         let cResp = (respFinal && respFinal !== '/') ? `<span class="font-black text-amber-700">${respFinal}</span>` : '<span class="text-slate-300">/</span>';
         let cObs = (row.observaciones && row.observaciones !== '/' && !String(row.observaciones).includes('1899-')) ? `<br><span class="text-[9px] text-slate-400 italic block truncate max-w-[120px]">${row.observaciones}</span>` : '';
 
-        // REGLA DE NEGOCIO F. LIB: Si está en cuarentena o pendiente va vacío (-). Si está liberado, muestra fecha de liberación o de envío.
+        // REGLA F. LIB: Si está en cuarentena o pendiente va vacío (-). Si está liberado, muestra fecha de liberación guardada (o de envío si no tuviera).
         let fLib = row.fecha_liberacion;
-        if (!cuarentena && !pendiente && (!fLib || fLib === '-' || fLib === '')) {
-          fLib = row.fecha_envio;
-        } else if (cuarentena || pendiente) {
+        if (cuarentena || pendiente) {
           fLib = '';
+        } else if (!fLib || fLib === '-' || fLib === '') {
+          fLib = row.fecha_envio;
         }
 
         let txtFechaLib = (fLib && fLib !== '-' && fLib !== '') ? `<span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 font-bold">${String(fLib).substring(0,10)}</span>` : '<span class="text-slate-300">-</span>';
@@ -702,9 +702,9 @@
           selectDict.value = 'CONFORME LIBERADO';
           selectDict.className = "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800 transition-colors cursor-not-allowed pointer-events-none";
           
-          // Si pasa a liberado, previsualiza la fecha de liberación existente o la fecha de envío/hoy por defecto
+          // Si pasa a liberado y no tiene fecha escrita en el input, le pone la fecha guardada previa o la fecha actual por defecto
           if(!inputFechaLib.value || inputFechaLib.value === '') {
-            inputFechaLib.value = regActual.fecha_liberacion || regActual.fecha_envio ? String(regActual.fecha_liberacion || regActual.fecha_envio).substring(0, 10) : new Date().toISOString().substring(0, 10);
+            inputFechaLib.value = regActual.fecha_liberacion || new Date().toISOString().substring(0, 10);
           }
       }
 
@@ -811,10 +811,12 @@
       document.getElementById('gResp').value = respVal || '';
       document.getElementById('gObs').value = obsFinal;
       
-      // Si ya está liberado y tiene fecha de liberación previa, se muestra; si no, muestra fecha actual para edición
+      // Asigna la fecha de liberación guardada previamente, o la fecha actual si estaba en cuarentena y se va a liberar
       let fechaLibVal = '';
-      if(!esLoteEnCuarentena(regActual) && !tieneResultadosPendientes(regActual)) {
-        fechaLibVal = regActual.fecha_liberacion ? String(regActual.fecha_liberacion).substring(0, 10) : (regActual.fecha_envio ? String(regActual.fecha_envio).substring(0, 10) : new Date().toISOString().substring(0, 10));
+      if (regActual.fecha_liberacion) {
+        fechaLibVal = String(regActual.fecha_liberacion).substring(0, 10);
+      } else {
+        fechaLibVal = new Date().toISOString().substring(0, 10);
       }
       document.getElementById('gFechaLib').value = fechaLibVal;
       
@@ -825,7 +827,7 @@
       document.getElementById('gFechaLib').addEventListener('input', evaluarEnVivoModal);
 
       evaluarEnVivoModal();
-      document.getElementById('modalGestion').classList.remove('hidden');
+      document.getElementById('modalGestion').classList.add('hidden');
     }
 
     async function guardarGestionModal() {
@@ -846,8 +848,14 @@
       }
 
       regActual.dictamen_final = document.getElementById('gDictamen').value;
-      // Si el dictamen es liberado, guarda la fecha elegida en el input; si está pendiente o cuarentena, guarda null (vacío)
-      regActual.fecha_liberacion = (regActual.dictamen_final === 'CONFORME LIBERADO') ? document.getElementById('gFechaLib').value : null;
+      
+      // CORRECCIÓN CRÍTICA: Asigna explícitamente la nueva fecha seleccionada en el input del modal al objeto antes de enviarlo a Supabase
+      if (regActual.dictamen_final === 'CONFORME LIBERADO') {
+        regActual.fecha_liberacion = document.getElementById('gFechaLib').value;
+      } else {
+        regActual.fecha_liberacion = null;
+      }
+
       regActual.responsable = document.getElementById('gResp').value || '/';
       regActual.observaciones = document.getElementById('gObs').value || '/';
 
@@ -1012,7 +1020,6 @@
         const modo = document.getElementById('selectModoCarga').value;
         registros = registros.map(r => { 
           if(modo !== 'AUTO') r.tipo_proceso = modo; 
-          // Si el lote viene sin errores pendientes al cargar, le asigna F. Envío como fecha de liberación inicial
           if(!tieneResultadosPendientes(r) && !esLoteEnCuarentena(r) && !r.fecha_liberacion) {
             r.fecha_liberacion = r.fecha_envio || new Date().toISOString().substring(0, 10);
           } else if (tieneResultadosPendientes(r) || esLoteEnCuarentena(r)) {
