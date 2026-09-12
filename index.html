@@ -186,7 +186,7 @@
       <div id="statusMessage" class="mt-2 text-xs hidden font-bold"></div>
     </section>
 
-    <!-- FILTROS Y BUSCADOR INTELIGENTE -->
+    <!-- FILTROS Y BUSCADOR -->
     <section class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3 relative z-10">
       <div class="grid grid-cols-1 md:grid-cols-6 gap-3">
         <div>
@@ -511,8 +511,6 @@
       }
     }
 
-    // Regla estricta: Solo hay fuera de norma si el valor es numérico >= 10.
-    // Si es '✓', '<10', '-', '/', o pendiente, NO es fuera de norma.
     function esFueraDeNorma(v) {
       if(!v) return false;
       const val = String(v).trim().toUpperCase();
@@ -522,13 +520,14 @@
       return false;
     }
 
+    // REGLA CLAVE CORREGIDA: Solo es pendiente si dice explícitamente "PENDIENTE" o está vacío. 
+    // Si tiene barra "/", check "✓", guion "-", o "<10", se considera CONFORME / LIBERADO.
     function esPendiente(v) { 
       const val = String(v||'').trim().toUpperCase();
-      return val === 'PENDIENTE' || val === '' || val === 'PENDIENTE RESULTADOS';
+      return val === 'PENDIENTE' || val === 'PENDIENTE RESULTADOS';
     }
 
     function tieneResultadosPendientes(r) {
-      if(/^\d{1,2}:\d{2}$/.test(String(r.observaciones||'').trim())) return true;
       if(r.tipo_proceso === 'UHT') {
         return esPendiente(r.arb_mesofilos) || esPendiente(r.arb_termofilos) || esPendiente(r.acido_lacticas);
       } else {
@@ -687,17 +686,15 @@
           estadoVivo = 'EN CUARENTENA';
           selectDict.value = 'EN CUARENTENA';
           selectDict.className = "w-full p-2 border-2 border-rose-400 rounded-lg bg-rose-50 font-black text-rose-800 transition-colors cursor-not-allowed pointer-events-none";
-          inputFechaLib.value = ''; 
       } else if (pendiente) {
           estadoVivo = 'PENDIENTE RESULTADOS';
           selectDict.value = 'PENDIENTE RESULTADOS';
           selectDict.className = "w-full p-2 border-2 border-amber-400 rounded-lg bg-amber-50 font-black text-amber-800 transition-colors cursor-not-allowed pointer-events-none";
-          inputFechaLib.value = ''; 
       } else {
           estadoVivo = 'CONFORME LIBERADO';
           selectDict.value = 'CONFORME LIBERADO';
           selectDict.className = "w-full p-2 border-2 border-emerald-400 rounded-lg bg-emerald-50 font-black text-emerald-800 transition-colors cursor-not-allowed pointer-events-none";
-          // Si pasa a liberado y no tenía fecha de liberación previa, se sugiere la fecha de hoy para que el usuario pueda cambiarla libremente
+          // Si pasa a liberado y no tiene fecha escrita, le asigna la fecha actual para previsualización inmediata en F. Lib.
           if(!inputFechaLib.value || inputFechaLib.value === '') {
             inputFechaLib.value = regActual.fecha_liberacion ? String(regActual.fecha_liberacion).substring(0, 10) : new Date().toISOString().substring(0, 10);
           }
@@ -806,7 +803,6 @@
       document.getElementById('gResp').value = respVal || '';
       document.getElementById('gObs').value = obsFinal;
       
-      // Mantiene la fecha de liberación previamente guardada si existe, de lo contrario pone la fecha actual
       let fechaLibVal = regActual.fecha_liberacion ? String(regActual.fecha_liberacion).substring(0, 10) : new Date().toISOString().substring(0, 10);
       document.getElementById('gFechaLib').value = fechaLibVal;
       
@@ -838,7 +834,6 @@
       }
 
       regActual.dictamen_final = document.getElementById('gDictamen').value;
-      // Respeta y guarda la fecha seleccionada por el usuario en el input sin sobrescribirla con la fecha de envío
       regActual.fecha_liberacion = (regActual.dictamen_final === 'CONFORME LIBERADO') ? document.getElementById('gFechaLib').value : null;
       regActual.responsable = document.getElementById('gResp').value || '/';
       regActual.observaciones = document.getElementById('gObs').value || '/';
